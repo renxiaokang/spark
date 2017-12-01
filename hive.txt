@@ -1,0 +1,3312 @@
+一、MySQL数据库的安装、sql语句操作
+Linux下安装MySQL  (rmp --help)
+基本步骤:上传软件->检查当前Linux环境是否已经安装，如发现系统自带的，先卸载->安装—>验证.
+1、检查是否安装mysql
+:查询所有安装过的软件：rpm -qa
+
+检查是否安装mysql
+rpm -qa|grep mysql  或者 rpm -qa | grep -i mysql
+卸载自带的mysql
+卸载软件：rpm -e --nodeps  xxxx
+rpm -e --nodeps mysql-libs-5.1.71-1.el6.x86_64
+2、安装mysql客户端与服务器.
+rpm -ivh ./MySQL-client-5.1.73-1.glibc23.x86_64.rpm 
+rpm -ivh MySQL-server-5.1.73-1.glibc23.x86_64.rpm 
+3、检查mysql的状态
+service mysql status
+没有启动那就起动
+service mysql start
+service mysql stop
+service mysql restart
+
+4、进入MySQL：mysql -uroot
+
+5、启动了之后进入数据库(看到mysql>表示已经进入数据库)
+mysql -uroot   (root用户进入数据库，之后设置密码了还需要密码。)
+
+(必须要注意：如果出现出现">"使用.exit;进入正常模式)
+显示数据库
+show databases;
+create database yundb 	
+show databases;
+use mysql;
+show tables;
+describe 表名；
+
+
+通过上面操作，即可在PC下使用图形化工具连接了！
+6、安装图形化工具：NaviCat for mysql
+NaviCat连接linux数据库
+7、新建连接并且写上Linux IP，测试失败，为什么呢？
+
+如何处理？
+Linux下链接数据库
+mysql -uroot
+8 设置数据库的root账户密码
+update mysql.user set password=PASSWORD ('root') where User ='root';
+9 打开远程访问连接（等于授权）
+update mysql.user set host='%' where user='root' and host = '127.0.0.1';
+10 刷新授权
+flush privileges;
+11、新建连接并且写上Linux IP，测试通过！！！
+
+
+SQL操作：
+SQL基本操作案例
+=======================================================================	
+【1】. 查询出JONES的领导是谁（JONES向谁报告）。
+子查询(效率低)：
+select 
+eName 
+from 
+EMP where eNo in(select emgr from EMP where eName='JONES');
+
+Join写法(高效)：
+select 
+e2.eName
+from(select emgr from EMP where eName='JONES') e1 
+left join EMP e2  
+on e1.emgr=e2.eNo;
+=======================================================================	
+【2】.JONES领导谁。（谁向JONES报告）。
+=======================================================================	
+【3】. 查询各职位的员工工资的最大值，最小值，平均值，总和
+select max(eSal) as max, min(eSal),avg(eSal),sum(eSal) from EMP group by eJob; 
+====================================================================	
+【4】. 选择具有各个eJob的员工人数(提示:对eJob进行分组，题目不太清楚觉得。。。)
+
+【5】. 查询员工最高工资和最低工资的差距,列名为DIFFERENCE；
+====================================================================	
+【7】. 查询所有部门的部门名字dp_name，所在位置dp_loc，员工数量和工资平均值；
+====================================================================	
+【8】. 查询和scott相同部门的员工姓名eName和雇用日期eHiredate
+ ====================================================================	
+【9】. 查询工资比公司平均工资高的所有员工的员工号eNo，姓名eName和工资eSal。
+====================================================================	   
+【10】. 查询和姓名中包含字母u的员工在相同部门的员工的员工号eNo和姓名eName
+=================================================================
+【11】. 查询在部门dp_loc为newYork的部门工作的员工的员工姓名eName，
+====================================================================
+【12】. 查询管理者是king的员工姓名eName和工资eSal
+====================================================================
+【13】. 显示ACCOUNTING部门有哪些职位
+====================================================================
+【14】. 各个部门中工资大于1500的员工人数及部门名称!!!!!!!!
+====================================================================
+【15】. 哪些员工的工资，高于整个公司的平均工资，列出员工的名字和工资（降序）
+====================================================================
+【16】. 所在部门平均工资高于1500的员工名字
+====================================================================
+【17】. 列出各个部门中工资最高的员工的信息：员工名字、部门名称、工资(有点问题哦)
+====================================================================
+【18】. 哪个部门的平均工资是最高的，列出部门号、平均工资!!!!
+====================================================================
+
+二、Hive的介绍、安装、操作
+1.什么是Hive？
+Hive是基于Hadoop的数据仓库解决方案。
+Hive就是在Hadoop上架了一层SQL接口，可以将SQL翻译成MapReduce去Hadoop上执行，
+这样就使得数据开发和分析人员很方便的使用SQL来完成海量数据的统计和分析，
+而不必使用编程语言开发MapReduce那么麻烦。
+
+hive就是一个翻译器，将传统的sql转化成mapreduce。
+
+
+2.Hive的架构原理
+(1).用户接口：WebUI、CUI、JDBC/ODBC
+(2).元数据：hive元数据默认存储在hive自带的Derby数据库，一般线上使用MySQL来存储hive的元数据！
+(3).驱动器：
+解释器：解析用户写的类SQL语句，解析其语词、语义、语法
+编译器：编译HQL，将HQL语句翻译为MapReduce job
+优化器：优化编译后的Job，优化出最优Job
+执行器：将优化后的Job提交给Hadoop执行
+
+3.Hive的相关概念:
+1.Hive数据库
+Hive中的数据库概念，本质上仅仅是表的一个目录结构或命名空间。
+创建一hive库，其实就是在hdfs系统上创建一个文件夹
+2.Hive中的表概念；
+本质上仅仅是数据的一个目录结构或命名空间。
+创建一hive表，其实就是在hdfs系统上数据库文件夹下创建一个表的文件夹。
+
+4.Hive环境的搭建
+(1).在mysql数据库里创建1608C数据库，用于存储元数据：
+create database if not exists 1608C DEFAULT CHARACTER SET latin1;
+(2).hive安装：
+上传、解压、重命名
+在conf目录下新建：hive-site.xml
+vi hive-site.xml
+<configuration>
+<!--设置1608C作为hive的元数据库，用于存储元数据信息-->
+<property>
+    <name>javax.jdo.option.ConnectionURL</name>
+    <value>jdbc:mysql://Hadoop001:3306/1608C?characterEncoding=UTF-8</value>
+</property>
+<!--将mysql的驱动jar包添加到hive的lib目录下-->
+<property>
+	<name>javax.jdo.option.ConnectionDriverName</name>
+	<value>com.mysql.jdbc.Driver</value>
+</property>
+<property>
+	<name>javax.jdo.option.ConnectionUserName</name>
+	<value>root</value>
+</property>
+<property>
+	<name>javax.jdo.option.ConnectionPassword</name>
+	<value>root</value>
+</property>
+</configuration>
+
+
+
+
+配置环境变量：
+export HIVE_HOME=/opt/hive
+export PATH=$PATH:$HIVE_HOME/bin
+source /etc/profile
+
+启动hive：
+start-all.sh
+hive
+
+进入hive之后，创建一个hive数据库库：
+create database if not exists db_1608c;
+
+到mysql里面查看元数据库
+
+Hive在HDFS上的默认存储路径：
+hadoop fs -ls /user/hive/warehouse
+
+<property>
+  <name>hive.metastore.warehouse.dir</name>
+  <value>/user/hive/warehouse</value>
+</property>
+
+
+5.Hive的基本操作：
+(1).基本使用：
+create database if not exists db_1608c01 COMMENT 'THIS IS MY FIRST DB';
+创建数据库的本质
+HDFS上Hive的存储路径目录下新建一个  数据库名.db  的文件夹
+
+show databases;
+use db_1608c;
+show tables;
+drop database if exists  库名
+注意：如果数据库里面有表，删除数据库时必须添加关键词：cascade
+drop database if exists  库名 cascade;
+
+(2).创建hive表：
+CREATE TABLE if not exists log(
+id             string COMMENT 'this is id column',
+phonenumber     bigint,
+mac             string,
+ip               string COMMENT 'THIS IS IP COLUMN',
+url              string,
+tiele             string,
+colum1          string,
+colum2           string,
+colum3           string,
+upflow            int,
+downflow         int
+) COMMENT 'this is log table'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+LINES TERMINATED BY '\n'
+stored as textfile;
+
+1.ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'   ：对每一行内每列数据之间的分隔符'\t'
+2.LINES TERMINATED BY '\n'   换行分隔符作为每一行的分割
+3.stored as textfile 以文本方式存储数据
+
+
+
+五种方式添加数据到hive表：
+1.从本地往Hive的log表中添加数据(数据从本地Linux系统copy到hive表目录下):
+load data local inpath '/opt/data/flow.log' into table db_1608c.log;
+或者
+load data local inpath '/opt/data/flow.log' overwrite into table db_1608c.log;
+
+2.从HDFS上往Hive的log表中覆盖数据（数据移动过程）：
+在hdfs系统的根目录下存储flow01.log :"/flow01.log"
+load data inpath '/flow01.log' into table db_1608c.log;
+或者
+load data inpath '/flow01.log' overwrite into table db_1608c.log;
+
+3.向log表中添加结果集数据：
+CREATE TABLE if not exists log002(
+id             string COMMENT 'this is id column',
+phonenumber     bigint,
+mac             string,
+ip               string COMMENT 'THIS IS IP COLUMN',
+url              string,
+tiele             string,
+colum1          string,
+colum2           string,
+colum3           string,
+upflow            int,
+downflow         int
+) COMMENT 'this is log table'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+LINES TERMINATED BY '\n'
+stored as textfile;
+
+将数据从一个hive表导入到另一个hive表：
+insert into table log002 select * from log where colum1=24;
+或者
+insert overwrite table log002 select * from log where colum1=24;
+
+4.如果hdfs系统上已经存放一个文件，创建hive表时，可以直接用location指向数据所在的目录即可！
+准备数据：
+hadoop fs -mkdir /source
+hadoop fs -put ./flow02.log /source
+
+CREATE TABLE if not exists log003(
+id             string COMMENT 'this is id column',
+phonenumber     bigint,
+mac             string,
+ip               string COMMENT 'THIS IS IP COLUMN',
+url              string,
+tiele             string,
+colum1          string,
+colum2           string,
+colum3           string,
+upflow            int,
+downflow         int
+) COMMENT 'this is log table'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+LINES TERMINATED BY '\n'
+stored as textfile
+location '/source';
+
+这种如果数据已经落地到hdfs系统，如何要创建一个hive表管理这个文件数据，
+那么最好用location指向方式创建hive表管理数据，这种方式可以直接避免浪费时间移动数据到hive库下面。
+
+5.将结果数据导入到新表中,创建表的时候导入新数据，表的机构跟导入的数据结构相同
+create table log004  as select * from log where colum1=24;
+
+create table log005  as select id,phonenumber,mac,ip,url,tiele from log where colum1=24;
+
+
+六、hive的元数据说明：
+DBS元数据表:每一行记录一个hive数据库所在hdfs系统上的位置
+hdfs://Hadoop001:9000/user/hive/warehouse/db_1608c01.db
+hdfs://Hadoop001:9000/user/hive/warehouse/db_1608c.db
+
+TBLS元数据表:每一行记录一个hive数据表的名称和表的，类型(内部表、外部表)
+log
+log002
+log003
+log004
+log005
+
+
+SDS元数据表:每一行记录一个hive数据表所在hdfs系统上的位置
+hdfs://Hadoop001:9000/user/hive/warehouse/db_1608c.db/log005
+hdfs://Hadoop001:9000/user/hive/warehouse/db_1608c.db/log004
+
+COLUMNS_V2元数据表：记录hive所有表的字段！
+
+所有，使用本地MySQL存储元数据信息，所有的元数据信息都存储在本地MySQL数据库，
+用hdfs系统存储hive的表数据！
+
+七、hive的数据管理模式
+关系型数据库的数据管理模式：写时模式，即添加数据的时候就检查数据格式，格式错误无法插入。
+Hive的数据管理模式：读时模式，即读取数据的时候才检查数据格式，不匹配返回null。
+
+***************************************************************************
+案例1：使用hive表管理学生信息(管理表或者内部表)：
+create table if not exists tb_stu(
+sno bigint,
+sname string,
+ssex string,
+sage int,
+saddress string
+)
+row format delimited fields terminated by ',';
+
+
+数据;
+vi tb_stu.txt
+201704023001,xiaowu,nv,28,fangshan
+201704023002,xiaowang,nan,28,fangshan
+201704023003,xiaoli,nv,28,fangshan
+201704023004,xiaoxu,nv,22,fangshan
+201704023005,xiaozhang,nan,28,fangshan
+201704023006,xiaopei,nv,25,fangshan
+201704023007,xiaohuang,nan,27,fangshan
+
+加载本地数据：
+
+load data local inpath '/opt/data/tb_stu.txt' overwrite into table tb_stu;
+
+
+案例2：使用hive表管理学生信息(外部表)：external
+create external table if not exists tb_stu02(
+sno bigint,
+sname string,
+ssex string,
+sage int,
+saddress string
+)
+row format delimited fields terminated by ',';
+
+load data local inpath '/opt/data/tb_stu.txt' overwrite into table tb_stu02;
+
+八、Hive的内部表和外部表：
+内部表:
+create table if not exists tb_stu003(
+sno bigint,
+sname string,
+ssex string,
+sage int,
+saddress string
+)
+row format delimited fields terminated by ',';
+
+load data local inpath '/opt/data/tb_stu.txt' overwrite into table tb_stu003;
+
+外部表：
+create external table if not exists tb_stu004(
+sno bigint,
+sname string,
+ssex string,
+sage int,
+saddress string
+)
+row format delimited fields terminated by ',';
+
+load data local inpath '/opt/data/tb_stu.txt' overwrite into table tb_stu004;
+
+*****************************************************************************
+分别删除：tb_stu003、tb_stu004
+
+(1).删除内部表: drop table tb_stu003;
+删除内部表：元数据信息被删除、hdfs系统上hive表的数据也被删除！
+
+(2).删除外部表: drop table tb_stu004;
+删除外部表：元数据信息被删除、hdfs系统上hive表的数据不被删除！
+
+所以，存储或者管理中间结果数据时一般用内部表管理，源数据用外部表管理！！！！
+
+
+久、Hive内部表和外部表示例(使用场景)
+
+需求：统计每个手机号使用的流量大小
+
+模拟数据（保证hdfs根目录下有source目录）;
+hadoop fs -mkdir /source
+hadoop fs -put ./flow.log /source
+
+
+创建外部表并且使用location指向数据目录source，想想为什么？
+location '/source' 目的是避免移动数据过程
+CREATE EXTERNAL TABLE 创建外部表的目的是保证数据的共享性！
+
+CREATE EXTERNAL TABLE if not exists log10(
+id             string COMMENT 'this is id column',
+phonenumber     bigint,
+mac             string,
+ip               string COMMENT 'THIS IS IP COLUMN',
+url              string,
+tiele             string,
+colum1          string,
+colum2           string,
+colum3           string,
+upflow            int,
+downflow         int
+) COMMENT 'this is log table'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+LINES TERMINATED BY '\n'
+stored as textfile
+location '/source';
+
+ 根据需求;统计每个手机号使用的流量大小
+实现思路：按手机号码分组，统计每个手机号的上行流量和下行流量，并且保存结果数据
+
+创建内部表存储结果数据;
+CREATE TABLE IF NOT EXISTS result(
+phonenumber     bigint,
+total           int
+)
+row format delimited fields terminated by'\t'
+lines terminated by '\n'
+stored as textfile;
+
+实现:
+insert into table result select phonenumber,sum(upflow+downflow) as flowsum from log10 group by phonenumber;
+或者
+insert into table result select phonenumber,sum(upflow)+sum(downflow) as flowsum from log10 group by phonenumber;
+
+****************************************************************************************
+案例：Hive基础操作
+-----------------------------------
+建表(本地数据、内部表)
+a表（id int,name string)
+b表(id int,job_id int,name_id int)
+c表(id int,jobname string)
+
+数据：a.txt、b.txt、c.txt  -----内部表
+create table if not exists tb_a(
+id int,
+name string
+)
+row format delimited fields terminated by',';
+
+create table if not exists tb_b(
+id int,
+job_id int,
+name_id int
+)
+row format delimited fields terminated by',';
+
+create table if not exists tb_c(
+id int,
+jobname string
+)
+row format delimited fields terminated by',';
+
+load data local inpath '/opt/data/a.txt' into table tb_a;
+load data local inpath '/opt/data/b.txt' into table tb_b;
+load data local inpath '/opt/data/c.txt' into table tb_c;
+
+问题1：内连接   --做交集
+select  a.*,b.*  from tb_a a inner join tb_b b on a.id=b.name_id;
+
+
+问题2：左连接   --最常用
+select  a.*,b.*  from tb_a a left join tb_b b on a.id=b.name_id;
+问题3：右连接   --不常用 	
+select  a.*,b.*  from tb_a a right join tb_b b on a.id=b.name_id;
+问题4：完全连接   --笛卡尔积 
+select  a.*,b.*  from tb_a a full join tb_b b on a.id=b.name_id;
+
+问题5：查找人名和对应工作
+select
+a.name as name,
+d.jobname
+from tb_a a  
+left join (
+select 
+b.name_id as id,
+c.jobname as jobname 
+from tb_b b 
+left join tb_c c 
+on b.job_id=c.id ) d
+on a.id=d.id;
+
+问题6：没有工作的人显示无业 有缺省值的替换查询!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+select
+a.name as name,
+if(d.jobname is not null,d.jobname,'无业')
+from tb_a a  
+left join (
+select 
+b.name_id as id,
+c.jobname as jobname 
+from tb_b b 
+left join tb_c c 
+on b.job_id=c.id ) d
+on a.id=d.id;
+
+外部表：
+创建表人信息表 person(name STRING,station INT)
+创建表票价信息表 ticket(station INT,price FLOAT)
+create external table if not exists tb_person(
+name STRING,
+station INT
+)
+row format delimited fields terminated by'\t';
+
+create external table if not exists tb_ticket(
+station INT,
+price FLOAT
+)
+row format delimited fields terminated by'\t';
+
+加载数据: person.txt、ticket.txt
+load data local inpath '/opt/data/person.txt' into table tb_person;
+load data local inpath '/opt/data/ticket.txt' into table tb_ticket;
+
+问题1：按照用户座的站数算对应价格
+select
+p.name as user_name,
+t.price as prices
+from tb_person p,tb_ticket t where p.station=t.station;
+
+问题2：根据用户座的站数算对应价格(10站以上打8折)
+select
+p.name as user_name,
+if(p.station>10,t.price*0.8,t.price) as prices
+from tb_person p,tb_ticket t where p.station=t.station;
+
+问题3：根据用户座的站数算对应价格(5到10站打9折、11站以上打8折)
+select
+p.name as user_name,
+case
+ when p.station>11 then t.price*0.8
+ when p.station<5 then t.price
+ else t.price*0.9
+end as prices
+from tb_person p,tb_ticket t where p.station=t.station;
+
+问题2、问题3 如何显示“xx整元”效果？学生实现！！！
+
+------------------
+成绩表 score(name string,chinese int,math int)
+班级表 class(name string,class string)
+create external table if not exists tb_score(
+name string,
+chinese int,
+math int
+)
+row format delimited fields terminated by',';
+
+create external table if not exists tb_class(
+name string,
+class string
+)
+row format delimited fields terminated by',';
+
+加载数据：score.txt、class.txt
+load data local inpath '/opt/data/score.txt' into table tb_score;
+load data local inpath '/opt/data/class.txt' into table tb_class;
+
+
+问题1：计算每个班的语文总成绩和数学总成绩
+select
+tb_c.class as class,
+sum(tb_s.chinese) as chinese,
+sum(tb_s.math) as math
+from tb_class tb_c, tb_score tb_s where tb_c.name=tb_s.name 
+group by tb_c.class;
+
+问题2：计算每个班的语文总成绩和数学总成绩(要求有哪科低于60分，该名学生成绩不计入计算)
+select
+tb_c.class as class,
+sum(tb_s.chinese) as chinese,
+sum(tb_s.math) as math
+from tb_class tb_c, tb_score tb_s 
+where tb_c.name=tb_s.name and tb_s.chinese>=60 and tb_s.math>=60
+group by tb_c.class;
+
+注意：where和having都可以过滤数据，都经常跟group by综合使用
+where和group by：where在group by在前面，并且是先用户where过滤，在统计！
+having和group by：having在group by后面，并且先聚合统计，然后在having过滤！
+案例：
+select
+tb_c.class as class,
+avg(tb_s.chinese) as avg_chinese,
+avg(tb_s.math) as avg_math
+from tb_class tb_c 
+group by tb_c.class having avg_chinese>60 and avg_math;
+
+c1,89,23,xiaoA
+c1,23,45,xiaoB
+c3,23,89,xiaoc
+c1,89,23,xiaoM
+c2,23,45,xiaoF
+c2,23,89,xiaoD
+ 
+-------------------------------------------
+创建学生表 my_student(Sno int,Sname string,Sex string,Sage int,Sdept string)
+创建科目表 my_course(Cno int,Cname string) 
+(课程号,课程名称)
+创建成绩表 my_score(Sno int,Cno int,Grade int)
+(学生号,课程号，成绩)
+
+加载数据：my_student.txt、my_course.txt、my_score.txt
+问题1：查询全体学生的学号与姓名
+问题2：查询选修了课程的学生姓名--去重
+问题3：查询学生的总人数
+问题4：计算1号课程的学生平均成绩
+问题5：查询选修1号课程的学生最高分数
+问题6：求各个课程号及相应的选课人数
+问题7：查询选修了4门以上的课程的学生学号
+问题8：查询选修了4门以上的课程的学生学号(问题7优化)
+问题9：按照年龄排序并直接输出到不同的文件中
+问题10：查询学生的得分情况。
+问题11：查询选修2号课程且成绩在90分以上的所有学生。
+
+
+
+
+Hive的分区操作：
+一、Hive分区
+(一)、分区概念：
+为什么要创建分区：单个表数据量越来越大的时候，在Hive Select查询中一般会扫描整个表
+内容，会消耗很多时间做没必要的工作。有时候只需要扫描表中关心的一部分数据，因此建表
+时引入了partition概念。
+(1)、Hive的分区和mysql的分区差异：mysql分区是将表中的字段拿来直接作为分区字段，
+而hive的分区则是分区字段不在表中。
+(2)、怎么分区：根据业务分区，(完全看业务场景)选取id、年、月、日、男女性别、年龄段
+或者是能平均将数据分到不同文件中最好,分区不好将直接导致查询结果延迟。
+(3)、分区细节:
+1、一个表可以拥有一个或者多个分区，每个分区以文件夹的形式单独存在表文件夹的目录下。
+2、表和列名不区分大小写。
+3、分区是以字段的形式在表结构中存在，通过describe table命令可以查看到字段存在(算是
+一个伪列)，但是该字段不存放实际的数据内容，仅仅是分区的表示。
+4、分区有一级、二级、三级和多级分区：
+5、创建动态分区、静态分区、混合分区：
+动态分区：可以动态加载数据
+静态分区：可以静态加入数据
+混合分区：动态和静态结合加入数据
+
+hive的分区则是分区字段不在表中。***********************
+
+二、分区案例
+案例1：使用hive的分区表对1608c班学生信息按性别存储；
+create table if not exists part_1608c(
+sno int,
+sname string,
+sage int,
+saddress string
+)
+partitioned by(sex string)
+row format delimited fields terminated by',';
+
+说明;创建分区表：
+partitioned by(sex string)  设置分区字段，并且分区字段不在表中
+
+vi part_1608c_nan.txt
+10001,laowu,18,daxing
+10002,laowang,48,fangshan
+10003,laozhang,8,daxing
+10004,laoxu,18,daxing
+
+vi part_1608c_nv.txt
+10005,xiaowu,28,daxing
+10006,xiaowang,18,fanshan
+10007,xiaozhang,18,daxing
+10008,xiaoxu,18,daxing
+
+*************LOAD DATA 方式加载数据到分区**********************
+
+对分区表数据的导入方式：
+load data local inpath '/opt/data/part_1608c_nan.txt' into table part_1608c partition(sex='nan');
+load data local inpath '/opt/data/part_1608c_nv.txt' into table part_1608c partition(sex='nv');
+
+查看表的分区：
+show partitions part_1608c;
+
+添加分区：
+alter table part_1608c add partition(sex='bunan');
+或者
+alter table part_1608c add partition(sex='bunv') partition(sex='bunanbunv');
+重命名分区：
+alter table part_1608c partition(sex='bunanbunv') rename to partition(sex='nannv');
+删除分区：
+alter table part_1608c drop partition(sex='bunv');
+alter table part_1608c drop partition(sex='bunan');
+alter table part_1608c drop partition(sex='nannv');
+
+分区表的查询：
+说明：对于分区表，在严格模式下查询分区表时必须使用where带上分区字段和分区值!
+set hive.mapred.mode=strict;
+select * from part_1608c where sex='nan';
+
+
+案例2：使用hive的分区表对1608c班学生信息按性别存储；
+创建一个普通表：
+create table if not exists tb_students(
+sno int,
+sname string,
+sage int,
+saddress string,
+sex string
+)
+row format delimited fields terminated by',';
+
+vi tb_students.txt
+10001,laowu,18,daxing,nan
+10002,laowang,48,fanshan,nv
+10003,laozhang,8,daxing,nan
+10004,laoxu,18,daxing,nv
+10005,xiaowu,28,daxing,nan
+10006,xiaowang,18,fanshan,nv
+10007,xiaozhang,18,daxing,nv
+10008,xiaoxu,18,daxing,nan
+
+load data local inpath '/opt/data/tb_students.txt' into table tb_students;
+
+创建一个分区表：
+create table if not exists part_1608c2(
+sno int,
+sname string,
+sage int,
+saddress string
+)
+partitioned by(sex string)
+row format delimited fields terminated by',';
+
+***************INSERT INTO 方式添加数据到分区表***************
+insert into table part_1608c2 partition(sex='nan') 
+select sno,sname,sage,saddress from tb_students where sex='nan';
+
+insert into table part_1608c2 partition(sex='nv') 
+select sno,sname,sage,saddress from tb_students where sex='nv';
+
+总结：像上面两种方式加载数据到分区的方式叫静态分区
+静态分区：指定分区数量和字段值(sex='nan'、sex='nv')
+静态分区的使用场景：当数据的分区字段数量和分区值确定，并且分区数量比较少时使用静态分区！
+
+
+动态分区案例
+案例2：将学生信息按年龄分区
+创建一个普通表：
+create table if not exists tb_students2(
+sno int,
+sname string,
+saddress string,
+sex string,
+sage int
+)
+row format delimited fields terminated by',';
+
+vi tb_students2.txt
+10001,laowu,daxing,nan,18
+10002,laowang,fanshan,nv,48
+10003,laozhang,daxing,nan,8
+10004,laoxu,daxing,nv,18
+10005,xiaowu,daxing,nan,28
+10006,xiaowang,fanshan,nv,18
+10007,xiaozhang,daxing,nv,18
+10008,xiaoxu,daxing,nan,18
+
+load data local inpath '/opt/data/tb_students2.txt' into table tb_students2;
+
+
+创建分区表：分区依据是年龄
+create table if not exists part_students2(
+sno int,
+sname string,
+saddress string,
+sex string
+)
+partitioned by(sage int)
+row format delimited fields terminated by',';
+
+动态分区;使用动态方式实现按年龄分区
+动态分区时只能以结果集的方式将数据动态分区到分区表：
+
+要能使用动态分区，必须打开动态分区模式，并且设置分区模式为非严格模式！
+1.打开动态分区模式：
+set hive.exec.dynamic.partition=true;
+2.设置分区模式为非严格模式
+set hive.exec.dynamic.partition.mode=nonstrict;
+
+insert into table part_students2 partition(sage) 
+select sno,sname,saddress,sex,sage from tb_students2;
+
+总结：像上面插入分区表数据的方式是动态分区
+动态分区：在插入数据时，不确定分区数量并且分区数量不是特别大的时候可以使用动态分区
+动态分区，在插入数据的时候分区字段的值是不确定的！
+
+**************混合分区****************
+案例3：将用户信息按国家和城市分区
+创建用户信息表：
+create table if not exists users(
+ucard int,
+uname string,
+contry string,
+city string
+)
+row format delimited fields terminated by'\t';
+
+
+加载数据：
+load data local inpath '/opt/data/city.txt' into table users;
+
+创建二级分区表：
+create table if not exists part_users(
+ucard bigint,
+uname string
+)
+partitioned by(contry string,city string)
+row format delimited fields terminated by'\t';
+
+混合分区：有静态分区字段和动态分区字段混合
+insert into table part_users partition(contry="USA",city) 
+select ucard,uname,city from users where contry='USA';
+
+insert into table part_users partition(contry="CH",city) 
+select ucard,uname,city from users where contry='CH';
+
+insert into table part_users partition(contry="UK",city) 
+select ucard,uname,city from users where contry='UK';
+
+混合分区注意;主分区字段必须是静态字段、辅助分区可以是动态。
+
+静态分区：
+动态分区：
+混合分区：
+
+案例4： 数据如果已经落地在hdfs系统的目录下，如何创建hive表管理已经落地的数据！？？？？？？？？？？？？？
+模拟落地数据：
+mkdir /opt/data/source
+cd /opt/data/source
+[root@Hadoop001 source]# mkdir 2016/01/01 -p
+[root@Hadoop001 source]# mkdir 2016/01/02 -p
+[root@Hadoop001 source]# mkdir 2016/01/03 -p
+[root@Hadoop001 source]# mkdir 2016/01/04 -p
+[root@Hadoop001 source]# mkdir 2016/02/04 -p
+[root@Hadoop001 source]# mkdir 2016/02/03 -p
+[root@Hadoop001 source]# mkdir 2016/02/02 -p
+[root@Hadoop001 source]# mkdir 2016/02/01 -p
+[root@Hadoop001 source]# mkdir 2016/03/01 -p
+[root@Hadoop001 source]# mkdir 2016/02/01 -p
+[root@Hadoop001 source]# mkdir 2016/03/02 -p
+[root@Hadoop001 source]# mkdir 2016/03/03 -p
+[root@Hadoop001 source]# mkdir 2016/03/04 -p
+ 
+[root@Hadoop001 data]# cp flow.log ./source/2016/01/01/
+[root@Hadoop001 data]# cp flow.log ./source/2016/01/02/
+[root@Hadoop001 data]# cp flow.log ./source/2016/01/03/
+[root@Hadoop001 data]# cp flow.log ./source/2016/03/01/
+[root@Hadoop001 data]# cp flow.log ./source/2016/02/01/
+
+将模拟数据上传到hdfs系统：
+ 
+hadoop fs -put ./source /
+ 
+
+创建外部分区表，并且location指向数据目录： 
+CREATE external TABLE IF NOT EXISTS part_flow(
+id              string,
+phonenumber     bigint,
+mac             string,
+ip              string,
+url            string,
+tiele           string,
+colum1          string,
+colum2          string,
+colum3          string,
+upflow          int,
+downflow        int
+)
+partitioned by(year int,month int,day int)
+row format delimited fields terminated by'\t'
+location '/source';
+
+
+给源数据添加分区：
+alter table part_flow add partition(year=2016,month=01,day=01) 
+location 'hdfs:///source/2016/01/01';
+
+alter table part_flow add partition(year=2016,month=03,day=01) 
+location 'hdfs:///source/2016/03/01/';
+
+alter table part_flow add partition(year=2016,month=01,day=03) 
+location 'hdfs:///source/2016/01/03/';
+
+
+
+三、Hive 桶---------------------------------------
+(一)、桶的概念：
+    对于每一个表（table）或者分区， Hive可以进一步组织成桶(没有分区能分桶吗？)，
+也就是说桶是更为细粒度的数据范围划分。Hive也是 针对某一列进行桶的组织。Hive采用
+对列值哈希，然后除以桶的个数求余的方式决定该条记录存放在哪个桶当中。
+    把表（或者分区）组织成桶（Bucket）有两个理由：
+(1)、获得更高的查询处理效率。桶为表加上了额外的结构，Hive 在处理有些查询时能利用
+这个结构。具体而言，连接两个在（包含连接列的）相同列上划分了桶的表，可以使用 
+Map 端连接 （Map-side join）高效的实现。比如JOIN操作。对于JOIN操作两个表有一个
+相同的列，如果对这两个表都进行了桶操作。那么将保存相同列值的桶进行JOIN操作就可
+以，可以大大较少JOIN的数据量。
+(2)、使取样（sampling）更高效。在处理大规模数据集时，在开发和修改查询的阶段，
+如果能在数据集的一小部分数据上试运行查询，会带来很多方便。
+
+(3)、强制多个 reduce 进行输出：
+插入数据前需设置，不设置将会只有一个文件：
+set hive.enforce.bucketing = true
+要向分桶表中填充数据，需要将 hive.enforce.bucketing 属性设置为 true。
+这 样，Hive 就知道用表定义中声明的数量来创建桶。然后使用 INSERT 命令即可。
+需要注意的是： clustered by和sorted by不会影响数据的导入，这意味着，用户必须自己负责数据如何如何导入，包括数据的分桶和排序。 
+'set hive.enforce.bucketing = true' 可以自动控制上一轮reduce的数量从而适配bucket的个数，
+当然，用户也可以自主设置mapred.reduce.tasks去适配bucket个数，推荐使用'set hive.enforce.bucketing = true' 
+
+
+二、案例操作
+1、以用户ID作为分桶依据，将用户数据分4个桶存放
+创建普通表：
+create table if not exists u_users(
+uid int,
+uname string,
+uage int
+)
+row format delimited fields terminated by',';
+
+vi u_users.txt
+1,xiaoA,12
+2,xiaoB,10
+3,xiaoC,12
+4,xiaoD,17
+5,xiaoE,12
+6,xiaoF,16
+7,xiaoG,15
+8,xiaoH,12
+9,xiaoW,12
+10,xiaoT,12
+11,xiaoL,18
+
+load data local inpath '/opt/data/u_users.txt' into table u_users;
+
+创建分桶表(用户ID作为分桶依据)：
+create table if not exists bk_users(
+uid int,
+uname string,
+uage int
+)
+clustered by(uid) into 4 buckets
+row format delimited fields terminated by',';
+
+说明：
+1.clustered by(uid) into 4 buckets 在row format delimited fields terminated by','前面，顺序不能调
+2.clustered by(uid) into 4 buckets 是以表的uid作为分桶依据，然后将数据分为4个桶操作。
+
+
+强制多个 reduce 进行输出桶文件
+set hive.enforce.bucketing = true
+
+加载数据到分桶表：
+注意：对分桶表数据的导入只能以结果集的方式添加
+hive和hbase整合的识别表也是只能以结果集的方式添加数据
+insert into table bk_users  select * from u_users;
+
+
+查看分桶表目录下的桶文件：
+hive> dfs -ls hdfs://Hadoop001:9000/user/hive/warehouse/db_1608c.db/bk_users;
+Found 4 items
+-rwxr-xr-x   3 root supergroup 22 2017-04-24 14:49 hdfs://Hadoop001:9000/user/hive/warehouse/db_1608c.db/bk_users/000000_0
+-rwxr-xr-x   3 root supergroup 33 2017-04-24 14:49 hdfs://Hadoop001:9000/user/hive/warehouse/db_1608c.db/bk_users/000001_0
+-rwxr-xr-x   3 root supergroup 34 2017-04-24 14:49 hdfs://Hadoop001:9000/user/hive/warehouse/db_1608c.db/bk_users/000002_0
+-rwxr-xr-x   3 root supergroup 34 2017-04-24 14:49 hdfs://Hadoop001:9000/user/hive/warehouse/db_1608c.db/bk_users/000003_0
+
+hive> dfs -cat hdfs://Hadoop001:9000/user/hive/warehouse/db_1608c.db/bk_users/000000_0;
+8,xiaoH,12
+4,xiaoD,17
+hive> dfs -cat hdfs://Hadoop001:9000/user/hive/warehouse/db_1608c.db/bk_users/000001_0;
+9,xiaoW,12
+5,xiaoE,12
+1,xiaoA,12
+hive> dfs -cat hdfs://Hadoop001:9000/user/hive/warehouse/db_1608c.db/bk_users/000002_0;
+10,xiaoT,12
+6,xiaoF,16
+2,xiaoB,10
+hive> dfs -cat hdfs://Hadoop001:9000/user/hive/warehouse/db_1608c.db/bk_users/000003_0;
+11,xiaoL,18
+7,xiaoG,15
+3,xiaoC,12
+
+分桶表的查询：
+select * from bk_users;
+
+tablesample是桶抽样语句，语法：TABLESAMPLE(BUCKET x OUT OF y)
+select * from bk_users TABLESAMPLE(BUCKET x OUT OF y);
+
+y尽可能是table总bucket数的倍数或者因子。
+
+y必须要大于x，否则报错。
+hive根据y的大小，决定抽样的比例;
+
+clustered by(id) into 16 buckets;
+例如，table总共分了16桶，当y=8时，抽取(16/8=)2个bucket的数据，
+当y=32时，抽取(16/32=)1/2个bucket的数据。
+x表示从哪个bucket开始抽取。
+bucketNumber/y=抽取数据的桶的个数
+当y>bucketNumber时,表示抽取的桶的数据是从第x个桶中抽取数据，而且只能从第x个桶中抽样数据
+当y能被bucketNumber整除时,表示一共抽取bucketNumber/y个桶的数据，数据从第x个桶开始抽样
+
+clustered by(id) into 32 buckets;
+例如，table总bucket数为32，tablesample(bucket 3 out of 16)，
+表示总共抽取（32/16=）2个bucket的数据，
+分别为第3个bucket和第（3+16=）19个bucket的数据。
+
+
+bk_users分桶结构:clustered by(uid) into 4 buckets
+#从bk_users分桶表抽出一桶数据：
+x=2,y=4
+select * from bk_users TABLESAMPLE(BUCKET 2 OUT OF 4);
+
+#从bk_users分桶表抽出二桶数据：
+x=2,y=2
+select * from bk_users TABLESAMPLE(BUCKET 2 OUT OF 2);
+
+#从bk_users分桶表抽出四桶数据：
+x=1,y=1
+select * from bk_users TABLESAMPLE(BUCKET 1 OUT OF 1);
+
+#从bk_users分桶表抽出半桶数据：
+x=1,y=8
+select * from bk_users TABLESAMPLE(BUCKET 1 OUT OF 8);
+
+
+=================抽样查询======================
+#随机从某表中取5条数据：
+select * from u_users order by rand() limit 5;
+ 
+#数据块取样  (TABLESAMPLE (n PERCENT))抽取表大小的n%
+select * from u_users TABLESAMPLE (10 PERCENT);
+ 
+#指定数据大小取样(TABLESAMPLE (nM)) M为MB单位
+select * from u_users TABLESAMPLE (10M);
+
+#指定抽取条数(TABLESAMPLE (n ROWS))
+select * from u_users TABLESAMPLE (5 ROWS);
+
+
+************分区+分桶+混合方式分区******************************
+案例2：按国家、城市分桶，以f1字段作为分桶依据
+create external table if not exists tb_part_bk_users(
+f1 string,
+f2 string,
+f3 string,
+contry string,
+city string
+)
+row format delimited fields terminated by'\t';
+
+
+load data local inpath '/opt/data/par_buc.txt' into table tb_part_bk_users;
+
+创建分区+分桶表：
+create external table if not exists part_bk_users(
+f1 string,
+f2 string,
+f3 string
+)
+partitioned by(contry string,city string)
+clustered by(f1) into 5 buckets
+row format delimited fields terminated by'\t';
+
+说明：
+1.partitioned by(contry string,city string)
+  clustered by(f1) into 5 buckets
+  先写分区操作、在设置分桶操作
+  
+ 混合方式将数据添加到分区分桶表：
+ 1.打开动态分区设置、设置动态分区模式为非严格模式
+ set hive.exec.dynamic.partition=true;
+ set hive.exec.dynamic.partition.mode=nonstrict;
+ 
+ 2.强制多个 reduce 进行输出桶文件
+  set hive.enforce.bucketing = true
+  
+ 3.只能以结果集的方式添加数据到分桶表
+ insert into table part_bk_users partition(contry='CA',city) 
+ select f1,f2,f3,city from tb_part_bk_users where contry='CA';
+ 
+  insert into table part_bk_users partition(contry='US',city) 
+ select f1,f2,f3,city from tb_part_bk_users where contry='US';
+ 
+ 
+ 作业题目1：
+  1、自己创建模拟数据：
+  2、创建一级内部区表
+  3、静态方式插入数据
+  
+  作业题目2：
+  1、自己创建模拟数据：
+  2、创建二级外部区分表(分区表指定location位置)
+  3、静态方式插入数据
+  
+ 作业题目3：
+  1、自己创建模拟数据：
+  2、创建一级内部区表
+  3、动态方式插入数据
+  
+  作业题目4：
+  1、自己创建模拟数据：
+  2、创建二级内部区表
+  3、混合方式插入数据
+  
+  可以模拟我课堂数据操作！
+ 
+ 
+ Hive的内置数据类型可以分为两大类：
+(1)、基础数据类型；
+(2)、复杂数据类型。
+一、其中，基础数据类型包括：
+TINYINT,SMALLINT,INT,BIGINT,BOOLEAN,FLOAT,DOUBLE,STRING,
+BINARY,TIMESTAMP,DECIMAL,CHAR,VARCHAR,DATE。
+下面的表格列出这些基础类型所占的字节以及从什么版本开始支持这些类型。
+
+数据类型	所占字节		           开始支持版本
+TINYINT/tinyint    1字节 -128 ~ 127
+SMALLINT/smallint  2字节
+INT/int            4字节
+BIGINT/bigint      8字节
+BOOLEAN/boolean    true/false
+FLOAT/float        4字节
+DOUBLE/double      8字节
+STRING/string      字符串
+BINARY/binary       二进制存储	         (Hive 0.8.0以上才可用)
+TIMESTAMP/timestamp 2016-09-06 00:00:00  (Hive 0.8.0以上才可用)
+
+####hive不支持的基础类型
+long
+char
+byte
+short
+
+create table if not exists tb_type(
+uno int,
+ucard bigint,
+age smallint,
+sex tinyint,
+marray boolean,
+hight float,
+weight double,
+uname string,
+uaddress binary,
+ubrithday timestamp
+)
+row format delimited fields terminated by',';
+
+vi tb_type.txt
+1011,141121199212388271,19,1,false,1.75,150.23,laowang,fangshan,2006-09-06 00:00:00
+1012,141121199212388273,16,0,false,1.75,150.23,laowang,fangshan,2007-09-06 00:00:00
+1013,141121199212388276,14,1,true,1.78,170.23,wangwang,fangshan,2012-09-06 00:00:00
+
+
+load data local inpath '/opt/data/tb_type.txt' into table tb_type;
+
+
+二、复杂类型包括ARRAY,MAP,STRUCT,UNION，这些复杂类型是由基础类型组成的。
+
+(1)、ARRAY：ARRAY类型是由一系列相同数据类型的元素组成，
+这些元素可以通过下标来访问。比如有一个ARRAY类型的变量fruits，
+它是由['apple','orange','mango']组成，那么我们可以通过
+fruits[1]来访问元素orange，因为ARRAY类型的下标是从0开始的
+
+create table if not exists tb_array(
+ucard bigint,
+uname string,
+loves array<String>
+)
+row format delimited fields terminated by'\t'
+collection items terminated by','
+LINES TERMINATED BY '\n';
+
+说明：
+1. row format delimited fields terminated by'\t' 设置数据中列和列之间用'\t' 分割
+2. collection items terminated by',' 设置的是数组元素之间的分割
+
+vi tb_array.txt
+141121199212388234	LILI	running,basketball,swimming
+141121199212388228	KING	sing,basketball,swimming
+141121199212388233	LUXI	running,sing,swimming
+141121199212388271	PAN	running,basketball,swimming,coding
+141121199212388224	WANG	running,basketball,swimming
+
+
+load data local inpath '/opt/data/tb_array.txt' into table tb_array;
+
+查询所有数据：
+select * from tb_array;
+hive> select * from tb_array;
+OK
+141121199212388234	LILI	["running","basketball","swimming"]
+141121199212388228	KING	["sing","basketball","swimming"]
+141121199212388233	LUXI	["running","sing","swimming"]
+141121199212388271	PAN	["running","basketball","swimming","coding"]
+141121199212388224	WANG	["running","basketball","swimming"]
+
+查看LILI的爱好：
+select loves from tb_array where uname='LILI';
+
+查询哪些用户喜欢running
+select uname from tb_array where loves[0]='running';
+
+
+select loves[0],loves[1],loves[2],loves[3] from tb_array where uname='LILI';
+running	basketball	swimming	NULL
+
+(2)、MAP：MAP包含key-value键值对，可以通过key来访问元素。
+比如”userlist”是一个map类型，其中username是key，
+password是value；那么我们可以通过userlist['username']
+来得到这个用户对应的password.
+
+create table if not exists tb_map(
+ucard bigint,
+uname string,
+score map<String,float>
+)
+row format delimited fields terminated by'\t'
+collection items terminated by','
+map keys terminated by ':';
+
+
+说明：
+1.  collection items terminated by',' //对map里k-v和另一个k-v之间的分割(chinese:98和math:100之之间的分割)
+map keys terminated by ':'; 对map里每一个k和v分割(chinese和98之间的分割)
+
+
+vi tb_map.txt
+141121199212388234	LILI	chinese:98,math:100,english:10
+141121199212388228	KING	chinese:90,math:70,english:80
+141121199212388233	LUXI	chinese:18,math:10,english:30
+141121199212388271	PAN	chinese:50,math:80,english:50
+141121199212388224	WANG	chinese:60,math:80,english:100
+
+
+load data local inpath '/opt/data/tb_map.txt' into table tb_map;
+
+hive> select * from tb_map;
+OK
+141121199212388234	LILI	{"chinese":98.0,"math":100.0,"english":10.0}
+141121199212388228	KING	{"chinese":90.0,"math":70.0,"english":80.0}
+141121199212388233	LUXI	{"chinese":18.0,"math":10.0,"english":30.0}
+141121199212388271	PAN	{"chinese":50.0,"math":80.0,"english":50.0}
+141121199212388224	WANG	{"chinese":60.0,"math":80.0,"english":100.0}
+
+查看语文成绩及格学生姓名：
+select uname from tb_map where score['chinese']>=60;
+查看KING的成绩：
+select score from tb_map where uname='KING';
+
+或者
+select 
+score['chinese'],
+score['math'],
+score['english'] 
+from tb_map where uname='KING';
+
+或者
+select 
+concat('语文:',score['chinese']),
+concat('语文:',score['math']),
+concat('语文:',score['english']) 
+from tb_map where uname='KING';
+
+
+
+(3)、STRUCT：STRUCT可以包含不同数据类型的元素。
+这些元素可以通过”点语法”的方式来得到所需要的元素，
+比如user是一个STRUCT类型，那么可以通过user.address得到
+这个用户的地址。
+
+create table if not exists tb_struct(
+ucard bigint,
+uname string,
+other struct<hight:double,weight:float,age:Int,address:String>
+)
+row format delimited fields terminated by'\t'
+collection items terminated by',';
+
+
+vi tb_struct.txt
+141121199212388234	LILI	1.76,180.2,10,'dongbei'
+141121199212388228	KING	1.26,10.4,2,'beijing'
+141121199212388233	LUXI	1.16,8.3,1,'shandong'
+141121199212388271	PAN	1.06,100.3,1,'daxing'
+141121199212388224	WANG	1.86,150.3,21,'haiding'
+
+load data local inpath '/opt/data/tb_struct.txt' into table tb_struct;
+
+
+hive> select * from tb_struct;
+OK
+141121199212388234	LILI	{"hight":1.76,"weight":180.2,"age":10,"address":"'dongbei'"}
+141121199212388228	KING	{"hight":1.26,"weight":10.4,"age":2,"address":"'beijing'"}
+141121199212388233	LUXI	{"hight":1.16,"weight":8.3,"age":1,"address":"'shandong'"}
+141121199212388271	PAN	{"hight":1.06,"weight":100.3,"age":1,"address":"'daxing'"}
+141121199212388224	WANG	{"hight":1.86,"weight":150.3,"age":21,"address":"'haiding'"}
+
+查看LILI的身高/体重/年龄数据：
+select 
+other.hight as hight,
+other.weight as weight,
+other.age  as age
+from tb_struct where uname='LILI';
+
+或者：
+select 
+concat("身高:",other.hight) as hight,
+concat("体重:",other.weight) as weight,
+concat("年龄:",other.age)  as age
+from tb_struct where uname='LILI';
+
+查找体重大于等于150的学生：
+select 
+concat("姓名:",uname),
+concat("体重:",other.weight)
+ from tb_struct where other.weight>=150;
+
+ 查看学生的其他信息：
+select other from tb_struct;
+
+
+(4)、array map struct综合应用
+create table if not exists tb_array_map_struct(
+ucard bigint,
+uname string,
+loves array<String>,
+score map<String,float>,
+other struct<hight:double,weight:float,age:Int,address:String>
+)
+row format delimited fields terminated by'|'
+collection items terminated by','
+map keys terminated by ':'
+lines terminated by '\n'
+stored as textfile;
+
+
+说明：hive的不支持这种score map<String,array<String>>组合方式的数据类型！！！
+
+vi tb_array_map_struct.txt
+141121199212388234	LILI	running,basketball,swimming	chinese:98,math:100,english:10	1.76,180.2,10,'dongbei'
+141121199212388228	KING	sing,basketball,swimming	chinese:90,math:70,english:80	1.26,10.4,2,'beijing'
+141121199212388233	LUXI	running,sing,swimming	chinese:18,math:10,english:30	1.16,8.3,1,'shandong'
+141121199212388271	PAN	running,basketball,swimming,coding	chinese:50,math:80,english:50	1.06,100.3,1,'daxing'
+141121199212388224	WANG	running,basketball,swimming	chinese:60,math:80,english:100	1.86,150.3,21,'haiding'
+
+load data local inpath '/opt/data/tb_array_map_struct.txt' into table tb_array_map_struct;
+
+select loves[0],score['math'],other.hight from tb_array_map_struct where uname='LILI';
+
+
+========HIVE分隔符操作部分==========
+一、概念：
+hive默认的列分隔符是"\001"，不是是tab分隔符，其也可以使用serde来自定义分割。
+
+tab
+|
+,
+:
+\n
+\001	^A ( ^A：列数据之间先按ctrl+v,然后再按ctrl+A ,)
+\002	^B ( ^B：列数据之间先按ctrl+v,然后再按ctrl+B,是Key-Value和另一个Key-Value键值对之间分隔符、元素和元素之间的分隔符)
+\003	^C ( ^C：列数据之间先按ctrl+v,然后再按ctrl+C，是Key-Value键值对之间分隔符)
+
+
+
+二、案例操作
+1.自定义分隔符案例
+create table if not exists tb_array_map_struct2(
+ucard bigint,
+uname string,
+loves array<String>,
+score map<String,float>,
+other struct<hight:double,weight:float,age:Int,address:String>
+)
+row format delimited fields terminated by'\t'
+collection items terminated by','
+map keys terminated by ':'
+lines terminated by '\n'
+stored as textfile;
+
+自定义分隔符号的说明：
+1. row format delimited fields terminated by'|' ——>自定义列和列之间的分隔符为'\t'
+collection items terminated by','  ——> 自定义元素和元素之间的分隔符为','
+map keys terminated by ':'  ——>自定义map里的 key-value之间的分隔符为":"
+lines terminated by '\n'   ——> hive目前只支持'\n'分割行
+stored as textfile;  ——> 使用默认的textfile文本形成存储数据
+
+vi tb_array_map_struct2.txt
+141121199212388234	LILI	running,basketball,swimming	chinese:98,math:100,english:10	1.76,180.2,10,'dongbei'
+
+
+load data local inpath '/opt/data/tb_array_map_struct2.txt' into table tb_array_map_struct2;
+
+2.使用默认的分割符案例
+create table if not exists tb_array_map_struct3(
+ucard bigint,
+uname string,
+loves array<String>,
+score map<String,float>,
+other struct<hight:double,weight:float,age:Int,address:String>
+)
+row format delimited fields terminated by'\001'
+collection items terminated by'\002'
+map keys terminated by '\003'
+lines terminated by '\n'
+stored as textfile;
+
+或者：：：：：：
+create table if not exists tb_array_map_struct4(
+ucard bigint,
+uname string,
+loves array<String>,
+score map<String,float>,
+other struct<hight:double,weight:float,age:Int,address:String>
+);
+
+注意：tb_array_map_struct3和tb_array_map_struct4 分割符是一样的！！！！
+
+使用默认的分隔符分割数据效果如下
+vi tb_array_map_struct34.txt
+141121199212388234^ALILI^Arunning^Bbasketball^Bswimming^Achinese^C98^Bmath^C100^Benglish^C10^A1.76^B180.2^B10^B'dongbei'
+
+
+对比自定义的分隔符数据：
+141121199212388234	LILI	running,basketball,swimming	chinese:98,math:100,english:10	1.76,180.2,10,'dongbei'
+
+
+load data local inpath '/opt/data/tb_array_map_struct34.txt' into table tb_array_map_struct3;
+
+
+Hive内置函数
+1.<=> 和=差不多一样
+
+
+<> 和!= 差不多一样
+
+2.
+select * from tb_students2 where sage not between 18 and 28;
+
+select * from tb_students2 where sage between 18 and 28;
+
+
+3.like 
+select * from tb_students2 where sname like 'la%';
+
+4.rlike 正则
+select * from tb_students2 where sname rlike '^[A-Za-z]*$';
+
+
+5. 位与运算、位或运算、 异或运算
+
+&
+
+0101 转10进制  0*2^3+1*2^2+0*2^1+1*2^0=5
+
+11 转2进制   1011
+11/2=5...1
+5/2=2..1
+2/2=1...0
+1/2=0...1
+
+
+0101     &
+1011
+--------同位为1时为1，否则为0
+0001 
+
+0010
+0101     &
+0000
+=============================================
+
+|
+0101     |
+1011
+--------同位为0时为0，否则为1
+1111 ->15
+
+
+^
+0101     ^
+1011
+--------同位相同是为0，否则为1
+1110->14
+
+6.向下取整：floor函数
+select floor(23.56788);
+7.向上取整：
+select ceil(23.52323232)
+24
+select ceil(23.02323232)
+
+
+日期函数：
+获取当前系统的时间：
+select unix_timestamp();
+查询每一行的时间作为新列显示：
+select ucard,uname,contry,city,unix_timestamp() from users;
+
+将时间戳转化为指定日期格式;
+select from_unixtime(1493104340,'yyyy-MM-dd');
+2017-04-25
+
+
+select weekofyear('2017-4-25');
+
+两个时间差：
+select datediff('2017-4-25','2007-4-20');
+
+从指定时间开始，返回100天后的时间：
+select date_add("2017-4-25",100);
+
+从指定时间开始，返回100天前的时间：
+select date_sub("2017-4-25",100);
+
+
+if(判断条件,结果1,结果2)************************
+问题2：根据用户座的站数算对应价格(10站以上打8折)
+select
+p.name as user_name,
+if(p.station>10,t.price*0.8,t.price) as prices
+from tb_person p,tb_ticket t where p.station=t.station;
+
+
+
+case  ... when....******************************
+case
+  when  2>3 then 2
+  when  2>1 then 1
+  else 0
+end
+问题3：根据用户座的站数算对应价格(5到10站打9折、11站以上打8折)
+select
+p.name as user_name,
+case
+ when p.station>11 then t.price*0.8
+ when p.station<5 then t.price
+ else t.price*0.9
+end as prices
+from tb_person p,tb_ticket t where p.station=t.station;
+
+
+Hive自定义函数
+一、为什么要UDF？
+1、hive的自带内部函数不能满足用户的特殊需求。
+hive也不可能考虑天下一切，如果真这样hive将会很庞大。
+2、hive是一个很开放的平台，很多内容都支持用户自定义，显得灵活。
+如：文件格式、用户自定义函数、用户自定义聚合函数等。
+
+二、什么是UDF函数？
+hive常见的三种自定义函数：
+UDF:user-defined function,操作单行，并返回一个值作为输出(一对一)。内部大多函数是这样，很常用。
+UDAF:user-defined aggregate function,操作多行，返回一个值作为输出(多对一)。hive的聚合函数就是这样，max、min等(用的一般)。
+UDTF:user-defined table-generation function,操作一行，返回多行作为输出,即返回一个表(一对多)。不用。
+
+编写udf的常用的两种方式：
+1、extends UDF ,重写其evaluate()方法，该方法支持重载。常用
+2、extends GenricUDF ,重写initialize、getDisplayString、evaluate方法 不常用
+
+编写Hive UDAF
+1.Evaluator需要实现 init、iterate、terminatePartial、merge、terminate
+
+三、案例
+1.编码
+/**
+ * 字符串拼接
+ * @author Yongke.pan
+ */
+public class MyConCat extends UDF {
+	public String evaluate(String str1, String str2) {
+		if (str1 == null) {
+			if (str2 != null) {
+				return str2;
+			} else {
+				return null;
+			}
+		}
+		if (str2 == null) {
+			return str1;
+		}
+		return str1 + str2;
+	}
+	public static void main(String[] args) {
+		System.out.println(new MyConCat().evaluate("Name:", "laowang"));
+	}
+}
+2.打jar包并且上传
+3.添加为hive的临时函数
+add jar /opt/data/MyConCat.jar;
+4.创建临时函数：
+ create temporary function myconcat as 'com.beicai.hive.udf.MyConCat';
+5.查看创建的临时函数
+show functions;
+6.测试临时函数：
+select myconcat("Name:","xiaowang");
+select myconcat("ICard:",ucard)from users;
+7.删除临时函数：
+ drop temporary function myconcat;
+ 
+ 案例2.
+1.编码
+/**
+ * 根据key找到value 如：sex=1&hight=178&weight=130&sal=25000
+ * @author Yongke.pan
+ */
+public class GetValueByKey extends UDF {
+	public String evaluate(String content, String key) throws Exception {
+		if (content == null) { // 判断内容是否为null
+			return key;
+		}
+		if (key == null) { // 判断key是否为null
+			return null;
+		}
+		// sex=1&hight=178&weight=130&sal=25000
+		content = content.replace("&", ",");
+		content = content.replace("=", ":");
+		content = "{" + content + "}";
+		// 使用org提供的JSONObject类封装为json数据格式
+		JSONObject json = new JSONObject(content);
+		return json.get(key).toString();
+	}
+	// public static void main(String[] args) throws Exception {
+	// System.out.println(new GetValueByKey().evaluate(
+	// "sex=1&hight=178&weight=130&sal=25000", "sal"));
+	// }
+}
+2.打jar包并且上传
+3.添加为hive的临时函数(需要重新启动HIVE)
+在hive-site.xml添加目录存放jar包：
+<property>
+    <name>hive.aux.jars.path</name>
+    <value>/opt/data/auxlib</value> 
+</property>
+4.创建临时函数：
+ create temporary function getvbykey as 'com.beicai.hive.udf.GetValueByKey';
+5.查看创建的临时函数
+show functions;
+6.测试临时函数：
+select getvbykey("sex=1&hight=178&weight=130&sal=25000",'weight');
+7.删除临时函数：
+ drop temporary function getvbykey;
+ 
+ 
+ 案例3：
+ /**
+ * 根据生日获取年龄 2000-06-06 -> 16
+ * @author Yongke.pan
+ */
+public class DateToAge extends UDF {
+	public int evaluate(String birthtime) throws Exception {
+		if (Strings.isNullOrEmpty(birthtime)) {
+			return 0;
+		}
+		// birthtime=2000-06-06
+		SimpleDateFormat sdf = new SimpleDateFormat(Constant.pattern);
+		Date date = sdf.parse(birthtime);
+		// 获取从1970到出生时间的一个毫秒值时间
+		long birthTimes = date.getTime();
+		// 获取从 January 1, 1970, 00:00:00 GMT到现在的时间毫秒值
+		long nowTimes = new Date().getTime();
+		// 获取从出生到现在的时间毫秒值
+		long daydiff = (nowTimes - birthTimes) / 1000 / 60 / 60 / 24;
+		// 获取出生的年份
+		int birthYear = Integer.parseInt(birthtime.split("-")[0]);
+		// 获取当前的年份
+		Calendar c = Calendar.getInstance();
+		int nowYear = c.get(Calendar.YEAR);
+		int count = 0;
+		for (int i = birthYear; i <= nowYear; i++) {
+			// 判断是否是润年，如果是就是就是366天，那么久比平年多一天
+			// count的值是统计有多少个润年
+			if ((i % 4 == 0 && i % 100 != 0) || (i % 400 == 0)) {
+				count++;
+			}
+		}
+		int age = (int) ((daydiff - count) / 365);
+		return age;
+	}
+}
+
+测试：
+add jar /opt/hive/auxlib/toAge.jar;
+create temporary function toage as ''com.beicai.hive.udf.DateToAge';
+select toage("1990-10-01");
+
+
+
+第二种方式使用UDF函数
+案例4：
+
+1.编写代码
+/**
+ * 根据出生年月日期获取星座 2016-2-18
+ * @author Yongke.pan
+ */
+public class DateToStar {
+    // 一、星座与日期
+	// 摩羯座：12.22-1.20
+	// 水瓶座：1.21-2.19
+	// 双鱼座：2.20-3.20
+	// 白羊座：3.21-4.20
+	// 金牛座：4.21-5.21
+	// 双子座：5.22-6.21
+	// 巨蟹座：6.22-7.22
+	// 狮子座：7.23-8.23
+	// 处女座：8.24-9.23
+	// 天秤座：9.24-10.23
+	// 天蝎座：10.24-11.22
+	// 射手座：11.23-12.21
+	//
+	// 二、星座类型：
+	// "摩羯座","水瓶座","双鱼座","白羊座","金牛座","双子座",
+	// "巨蟹座","狮子座","处女座","天秤座","天蝎座","射手座"
+	// 三、日期界限：
+	// 20,19,20,20,21,21,22,23,23,23,22,21
+
+	public String evaluate(String birthdayDate) {
+		if (Strings.isNullOrEmpty(birthdayDate)) {
+
+			return null;
+		}
+		String[] stars = { "摩羯座", "水瓶座", "双鱼座", "白羊座", "金牛座", "双子座", "巨蟹座",
+				"狮子座", "处女座", "天秤座", "天蝎座", "射手座" };
+		int[] days = { 20, 19, 20, 20, 21, 21, 22, 23, 23, 23, 22, 21 };
+		// 2016-2-22
+		int birthmonth = Integer.parseInt(birthdayDate.split("-")[1]); // 2
+		int birthday = Integer.parseInt(birthdayDate.split("-")[2]); // 22
+		// 因为数组的下标是从0开始，而月份是从1开始的，要想对于拿到月份的日期界限值
+		// 那么必须得birthmonth - 1 去获取对于的月份星座和月份的日期界限值
+		if (days[birthmonth - 1] >= birthday) { // 19>18
+			birthmonth = birthmonth - 1;
+		}
+		return stars[birthmonth];
+	}
+
+	public static void main(String[] args) {
+		System.out.println(new DateToStar().evaluate("2016-2-24"));
+	}
+}
+
+2.打包上传
+3.在任意目录下新建hive-init(我在hive根目录下新建),添加hive识别jar包和创建临时函数
+vi hive-init
+add jar /opt/data/toStar.jar;
+create temporary function  getstar as 'com.beicai.hive.udf.DateToStar';
+4.重新启动hive,并且初始化hive-init文件
+hive -i /opt/hive/hive-init 
+5.查看临时函数：
+show functions;
+6.使用临时函数：
+select getstar("1990-01-01");
+
+---------正则表达式课程--------------
+一、概念
+(1)、百度百科：正则表达式
+(2)、正则表达式菜鸟教程
+二、正则表达式简单案例
+验证数字：^[0-9]+$   ^\d+$
+12345
+
+--------------------------------------
+验证n位的数字：^\d{n}$  ^[0-9]{5}$
+12345
+--------------------------------------
+验证至少n位数字：^\d{n,}$ 
+12345
+--------------------------------------
+验证m-n位的数字：^\d{m,n}$
+12345
+1
+123
+452323
+-------------------------------------------
+验证零开头的字符(字符只包含数字、字母、下划线)：^[0]\w*$
+0weqrqr
+dafaf
+1adfafa
+afdaf
+
+-------------------------------------------
+验证有两位小数的正实数：^[0-9]+(.)[0-9]{2}$
+0.23
+0.2345
+1.23
+
+----------------------------------------------
+验证长度为3的字符：^.{3}$
+131
+afc
+ABC
+*&@
+----------------------------------------------
+验证由26个英文字母组成的字符串：^[A-Za-z]+$
+adfaf
+AAAA
+BBBB
+----------------------------------------------
+验证由26个大写英文字母组成的字符串：^[A-Z]+$
+1adfaf
+AAAA
+BBBB
+dsaf
+----------------------------------------------
+验证由26个小写英文字母组成的字符串：^[a-z]+$
+1adfaf
+AAAA
+BBBB
+dsaf
+
+-----------------------------------------------------
+验证由数字和26个英文字母组成的字符串：^[A-Za-z0-9]+$
+abCDa232
+23424
+afasd
+QERQ#
+QERQ
+-----------------------------------------------------
+验证由数字、26个英文字母或者下划线组成的字符串：^\w+$
+qreq_
+qreq_#
+q34r_
+abC
+213
+--------------------------------------------------------------------
+正确格式为：以字母开头，长度在6-18之间，只能包含字字母、数字和下划线。
+验证用户密码:^([A-Za-z]){5,17}$
+abC42522
+21q34r_
+1331414143142412432423wqrqrqrq
+-------------------------------------------------
+
+验证身份证号（15位或18位数字）：^\d{14}([0-9xX]|([0-9]{3}[0-9Xx]))$
+512732199210016748
+52273219921001674X
+53273219921001674x
+542732199210016
+56263219921001x
+57163219921001X
+524273219921001674Q
+
+--------------------------------------------------------
+验证一年的12个月：^((0?[1-9])|(1[0-2]))$
+正确格式为：“01”-“09”和“1”“12”
+10
+13
+09
+9
+1
+6
+11
+
+
+验证一个月的31天：
+^((0?[1-9])|((1|2)[0-9])|30|31)$ 
+^((0?\d)|((1|2)\d)|3(0|1))$ 
+正确格式为：01、09和1、31。
+01
+6
+05
+12
+18
+24
+30
+31
+32
+
+三、JAVA案例正则表达式部分
+【案例01】
+内容：
+Jenny
+Dan12
+Max
+John3
+Linda
+正则表达式:^[A-Za-z]+$
+
+create table if not exists tb_rgexp01(
+uname string
+);
+
+vi tb_rgexp01
+Jenny
+Dan12
+Max
+John3
+Linda
+
+load data local inpath '/opt/data/tb_rgexp01' into table tb_rgexp01;
+
+
+UDF编码;
+/**
+ * 判断用户名是否正确
+ * @author Yongke.pan
+ */
+public class regExpName extends UDF {
+
+	public String evaluate(String uname) {
+		if (Strings.isNullOrEmpty(uname)) {
+			return null;
+		}
+		String regexp = "^[A-Za-z]+$";
+		if (Pattern.matches(regexp, uname)) {
+			return uname;
+		}
+		return null;
+
+	}
+	// public static void main(String[] args) {
+	// System.out.println(new regExpName().evaluate("AA12AA"));
+	// }
+}
+
+add jar /opt/data/isName.jar;
+create temporary function isname as 'com.beicai.hive.udf.regExpName';
+select isname("xiaopan");
+select isname(uname) from tb_rgexp01;
+
+
+【案例02】
+内容：
+A125ou,Jenny,100,210
+A3419uh,Dan,110,215
+Pqer158,Max,130,209
+P148uyh12,John,122,20
+A123,Linda,95,210
+
+需求：过滤出编号数组部分(A125ou过滤出：125)
+正则表达式：^[^0-9]*(\d+).*$
+create table if not exists tb_rgexp02(
+uno string,
+uname string,
+getin int,
+output int
+)
+row format delimited fields terminated by ',';
+
+数据文件名称：tb_rgexp02
+load data local inpath '/opt/data/tb_rgexp02' into table tb_rgexp02;
+
+
+2.UDF编码部分：
+/**
+ * 使用正则表达式过来出编码数字部分
+ * @author Yongke.pan
+ */
+public class RegExpNo extends UDF {
+	public int evaluate(String content) {
+		if (Strings.isNullOrEmpty(content)) {
+			return 0;
+		}
+		String regexp = "^[^0-9]*(\\d+).*$";
+		Pattern p = Pattern.compile(regexp);
+		Matcher m = p.matcher(content);
+		int result = 0;
+		if (m.find()) {
+			m.groupCount(); // 获取一共这个正则表达式有多少个()
+			m.group(0);// 获取整行数据
+			result = Integer.parseInt(m.group(1));// 获取第一个()里面的内容
+		}
+		return result;
+	}
+}
+add jar /opt/data/getNo.jar;
+create temporary function getno as 'com.beicai.hive.udf.RegExpNo';
+select getno("234oop32sd");
+select getno(uno),uname,getin,output from tb_rgexp02; 
+
+将结果导入新表。。。
+create table tb_rgexp03 as select getno(uno),uname,getin,output from tb_rgexp02; 
+
+将结果导入本地的/opt/data：
+insert overwrite local directory '/opt/data' select getno(uno),uname,getin,output from tb_rgexp02; 
+
+将结果数据导入hdfs的/hdfs：
+insert overwrite local directory '/hdfs' select getno(uno),uname,getin,output from tb_rgexp02; 
+
+晚上任务：
+1.晚上练习【案例03】
+2.晚上熟练记住：《正则表达式特殊记录.txt》正则表达式符号
+
+【案例03】
+IP
+192.168.10.1
+12.128.10.10
+正则表达式：
+需求：过滤出每个PC的IP号(192.168.10.1--->1)
+提示：根据【案例02】方式操作！
+
+
+四、项目操作：
+(1)、数据源：access_log.txt
+(2)、需求：
+将原始数据，格式化为如下格式
+(3)、原始数据：
+220.181.108.151 - - [31/Jan/2012:00:02:32 +0800] "GET /home.php?mod=space&uid=158&do=album&view=me&from=space HTTP/1.1" 200 8784 "-" "Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)"
+211.141.86.10 - - [31/Jan/2012:00:53:27 +0800] "GET /forum-58-1.html HTTP/1.0" 200 67288 "-" "-"
+(4)、使用Hive UDF完成,格式化后：
+
+IP				日期		时间	请求方式	请求URL											网路协议	状态码	浏览器类型	其他
+220.181.108.151	20120131	0002032	GET	/home.php?mod=space&uid=158&do=album&view=me&from=space	HTTP	200	Mozilla	(compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)
+
+(5)、正则表达式
+   ^([0-9.]+) - - \[(.* \+\d+)\] .+(GET|POST) (.+) (HTTP)\S+ (\d+) .+ \"([A-Za-z]+).+$
+12.19写：
+   ^([0-9.]+).* \[(.*)\].*(GET|POST) (.*) (HTTP).*" (\d+).*"([\w]+).*$
+注意：写完了之后应该把access_log.txt添加到Hive库，然后在用UDF临时函数测试(代码在案例UDF源码里面)
+
+1.正则表达式：access_log.txt
+4.27号：
+^([0-9.]+) - - \[(.+)\]\s.*(GET|POST)\s(.+)\s(HTTP).*"\s(\d+).*"([a-zA-Z0-9/.-]+).*$
+2.创建hive表管理数据：access_log.txt
+(1)上传数据：
+hadoop fs -mkdir /logsdir
+hadoop fs -put /opt/data/access_log.txt /logsdir
+
+(2).创建外部表执行logs目录：
+create external table if not exists tb_logs(
+logs string
+)
+location '/logsdir';
+
+3.编码：
+/**
+ * 使用UDF函数+正则表达式过滤日志
+ * @author Yongke.pan
+ */
+public class RegExpLog extends UDF {
+
+	public String evaluate(String logs) throws Exception {
+		if (Strings.isNullOrEmpty(logs)) {
+			return null;
+		}
+		// 正则表达式：
+		// String regexp=^([0-9.]+) - -
+		// \[(.+)\]\s.*(GET|POST)\s(.+)\s(HTTP).*"\s(\d+).*"([a-zA-Z0-9/.-]+).*$
+		String regexp = "^([0-9.]+) - - \\[(.+)\\]\\s.*(GET|POST)\\s(.+)\\s(HTTP).*\"\\s(\\d+).*\"([a-zA-Z0-9/.]+).*$";
+
+		Pattern p = Pattern.compile(regexp);
+		Matcher m = p.matcher(logs);
+
+		StringBuffer sbf = null;
+		if (m.find()) { // 判断正则表达式是否能比配对于的日志内容
+			sbf = new StringBuffer();
+			// 获取一共有多少个域
+			// int num = m.groupCount();
+			String IP = m.group(1);// 获取IP
+			sbf.append(IP).append(",");
+
+			String date_time = m.group(2);// 获取日期和时间
+			SimpleDateFormat sdf1 = new SimpleDateFormat(
+					"dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
+			Date datetime = sdf1.parse(date_time);
+			SimpleDateFormat sdf2 = new SimpleDateFormat("yyyyMMdd,HHmmss");
+			String date_and_time = sdf2.format(datetime);
+			sbf.append(date_and_time).append(",");
+
+			String get_post = m.group(3);// 获取请求方式
+			sbf.append(get_post).append(",");
+
+			String url = m.group(4);// 获取URL
+			sbf.append(url).append(",");
+
+			String http = m.group(5);// 获取网络协议
+			sbf.append(http).append(",");
+
+			String status = m.group(6);// 获取状态码
+			sbf.append(status).append(",");
+
+			String browers = m.group(7);// 获取浏览器
+			sbf.append(browers);
+		}
+		return sbf.toString();
+	}
+	public static void main(String[] args) throws Exception {
+		// SimpleDateFormat sdf1 = new
+		// SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z",
+		// Locale.ENGLISH);
+		// Date datetime = sdf1.parse("31/Jan/2012:00:02:32 +0800");
+		// SimpleDateFormat sdf2 = new SimpleDateFormat("yyyyMMdd,HHmmss");
+		// String date_and_time = sdf2.format(datetime);
+		// System.out.println(date_and_time);
+
+		// 单行测试
+		// System.out.println(new
+		// RegExpLog().evaluate("220.181.108.151 - - [31/Jan/2012:00:02:32 +0800] \"GET /home.php?mod=space&uid=158&do=album&view=me&from=space HTTP/1.1\" 200 8784 \"-\" \"Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)\""));
+	}
+}
+
+4.打包上传、添加临时函数
+add jar /opt/data/RegExpLog.jar;
+create temporary function regexplog as 'com.beicai.hive.udf.RegExpLog';
+5.查看数据
+select regexplog(logs) from tb_logs;
+6.创建一个hive表指向hdfs系统的/hdfsdir目录
+7.hive表的字段根据导出数据的结构决定。
+8.将regexplog函数过滤出来的数据保存到hdfs系统的/hdfsdir目录
+9.查看表新表的数据！
+
+
+
+
+---------------数据导入导出------------------------------
+创建表：
+CREATE TABLE IF NOT EXISTS userses(
+name string,
+sex string
+)
+row format delimited fields terminated by'\t';
+
+CREATE TABLE IF NOT EXISTS user_tmp(
+name string,
+sex string
+)
+partitioned by(age int)
+row format delimited fields terminated by'\t';
+
+
+------------------------HIVE总结-----------------------------------------------
+总结：
+一、数据导入部分：
+(1)、总所周知，hive本身并没有严格的数据格式。
+Hive导入数据的四种方式：(肯定不只四种)
+简单介绍四种：
+1、从本地文件系统中导入数据到Hive表（数据copy过程）：
+  load data local inpath '/hivedata/user.txt' into table user;
+2、从HDFS上导入数据到Hive表(从hdfs导入数据到Hive中，是一个数据移动过程!)
+   load data inpath '/hivedata/user.txt' into table user;
+3、从别的表中查询出相应的数据并导入到Hive表中
+   insert into table user_tmp select * from user;
+4、在创建表的时候通过从别的表中查询出相应的记录并插入到所创建的表中。
+    create table userses_tmp as select * from userses;
+	create table userses_tmp2 as select name from userses where sex='nan';
+
+5、创建表时跟上 location "hdfs上的目录input"
+    CREATE TABLE IF NOT EXISTS user_tmp3(
+    name string,
+    sex string
+    )
+    row format delimited fields terminated by'\t'
+	location '/input';
+	Hvie时读时模式！！！！
+
+二、数据导出部分：
+1、Hive导出数据的三种方式：
+   根据导出的地方不一样，将这些方式分为三种：
+(1)、导出到本地文件系统(保存hive查询结果)；
+     insert overwrite local directory'/root/outdir' select* from userses; 
+	 导出数据时指定分隔符：
+	 insert overwrite local directory'/root/outdir' row format delimited fields terminated by '\t' select* from userses;
+	 
+	 注意：
+         在Hive 0.11.0版本之前，数据的导出是不能指定列之间的分隔符的，只能用默认的列分隔符。
+     所以到处数据时数据默认分隔符是^A(不指定分隔符时到处数据时可以看看)。
+         在Hive0.11.0版本新引进了一个新的特性，也就是当用户将Hive查询结果输出到文件，用户可
+     以指定列的分割符，而在之前的版本是不能指定列之间的分隔符。
+     
+	 如若表有 基本类型和复合数据类型！
+     insert overwrite local directory'/root/outdir' 
+     row format delimited fields terminated by '\t'
+     collection items terminated by','
+     map keys terminated by':'
+     select* from userses;
+     
+     insert overwrite directory'/hivedata/user.txt' into table user
+     row format delimited fields terminated by '\t'
+     collection items terminated by','
+     map keys terminated by':'
+     select* from userses;
+   
+(2)、导出到HDFS中
+insert overwrite directory'/out01' select* from userses;
+(3)、导出到Hive的另一个表中这也是Hive的数据导入方式.
+
+
+一、关于count统计行的总结：
+count(id)
+count(*)
+count(1)
+count(列名)时，如果该列的值为null时，改行不计入count统计的总行数中.
+count(*)和count(1)其实并没有区别，这两者都会将表中所有行都算进来，
+也就是该表的总行数(行为空时也算)
+
+
+二、where和HAVING使用
+having跟where类似，但having判断条件里可以使用聚合函数
+两者都可以跟group by一起配合使用
+where语句需要写在group by语句之前
+having的顺序在group by 之后
+能够使用having的场景下可以避免写嵌套查询
+
+需求1：统计各学校班级升班人数的总math、chinese、english分数
+select 
+class,
+sum(math),
+sum(chinese),
+sum(english) 
+from tb_score 
+where math>=60 and chinese>=60 and english>=60 group by class;
+
+需求2： 查询学校math、chinese、english平均分数都大于60分的班级
+select 
+classes
+from tb_score 
+group by classes 
+having avg(math)>60 and  avg(chinese)>60 and avg(english)>60;
+
+--------------------------------------------------------
+
+--------------------------shell script部分------------------------
+一、什么是shell
+shell是c程序写一门脚本语言，它主要承担是用户和linux系统使用的桥梁。
+shell编程指两方面，一个是对shell程序进行编程。一个是使用shell进行编程。
+
+二、shell有那些解释器？
+/bin/sh(Linux内核自带)
+/bin/bash(Linux内核自带)
+/bin/csh(Linux内核自带)
+/bin/ksh(需要安装)
+
+三、shell运行的环境、运行方式
+第一种使用方式：在执行sh脚本文件时制定解释器
+编写脚本：
+vi first.sh
+echo "leihao!"
+
+执行脚本：
+ /bin/bash ./first.sh
+ 
+ 
+第二种方式：在脚本文件的第一行制定解释器 
+ vi second.sh
+ #!/bin/sh
+ echo " lei hao a"
+ 
+ 执行脚本：在执行脚本前，先给其添加权限
+ chmod u+x ./second.sh
+ 运行脚本：./second.sh
+
+四、shell编程
+(1)、shell的变量定义和使用
+变量定义：大家最好都按java的命名规则，并且变量和=及=和值都不能有空格
+变量名=值
+vi demo01.sh
+#!/bin/bash
+name="wangwang"
+echo "$name"
+
+先给其添加权限:
+chmod u+x ./demo01.sh
+执行：
+./demo01.sh
+
+只读： readonly 变量名
+
+#!/bin/bash
+name="wangwang"
+echo "$name"
+readonly name
+#name不能再次修改
+name='miaomiao' 
+echo "$name"
+
+
+删除变量：
+
+#!/bin/bash
+name="wangwang"
+echo "$name"
+#删除name变量
+unset name
+#name变量已经删除不能再次使用
+echo "$name"
+
+字符串中的单引号和双引号的区别：
+(1)单引号字符串的限制：
+单引号里的任何字符都会原样输出，单引号字符串中的变量是无效的；
+单引号字串中不能出现单引号（对单引号使用转义符后也不行）
+#!/bin/bash
+name="wangwang"
+echo '$name'
+输出: $name
+
+(2).双引号的优点：
+双引号里可以有变量:
+双引号里可以出现转义字符
+
+
+获取字符串长度
+#!/bin/bash
+name="wangwang"
+echo "${#name}"
+输出：8
+
+提取子字符串：
+#!/bin/bash
+name="wangwang"
+echo "${name:4:4}"
+
+
+(2)、shell的数组
+bash支持一维数组（不支持多维数组），并且没有限定数组的大小。
+类似与C语言，数组元素的下标由0开始编号。获取数组中的元素要利用下标，下标可以是整数或算术表达式，
+其值应大于或等于0。
+arra=("laowang" "xiaowang" "laoli")
+
+arra=(
+"laowang" 
+"xiaowang" 
+"laoli"
+)
+
+#!/bin/bash
+arra=("laowang" "xiaowang" "laoli")
+#根据下标获取某个元素
+name=${arra[0]}
+echo "$name"
+#获取数组元素个数
+echo "${#arra[@]}"
+
+(3)、shell运算符操作
+算数运算符:
+  注意：原生bash不支持简单的数学运算，但是可以通过其他命令来实现.但是可以通过
+  expr 是一款表达式计算工具，使用它能完成表达式的求值操作。
+
+#!/bin/bash
+a=100
+b=200
+c=`expr $a + $b`
+d=`expr $a - $b`
+e=`expr $a / $b`
+f=`expr $a \* $b`
+echo "$c"
+echo "$d"
+echo "$e"
+echo "$f" 
+----------------------------------------------------
+关系运算符：
+-eq	检测两个数是否相等，相等返回 true。	[ $a -eq $b ] 返回 false。 equals
+-ne	检测两个数是否相等，不相等返回 true。	[ $a -ne $b ] 返回 true。not equals 
+-gt	检测左边的数是否大于右边的，如果是，则返回 true。	[ $a -gt $b ] 返回 false。 greater than
+-lt	检测左边的数是否小于右边的，如果是，则返回 true。	[ $a -lt $b ] 返回 true。  less than
+-ge	检测左边的数是否大于等于右边的，如果是，则返回 true。	[ $a -ge $b ] 返回 false。 greater equals
+-le	检测左边的数是否小于等于右边的，如果是，则返回 true。	[ $a -le $b ] 返回 true。  less equals
+
+#!/bin/bash
+a=100
+b=200
+if [ $a -eq $b ]
+ then
+  echo "$a equals $b"
+else
+  echo "$a not equals $b "
+fi
+
+if [ $a -ne $b ];then
+  echo "$a not equals $b"
+else
+  echo "$a equals $b "
+fi
+
+if [ $a -lt $b ];then
+  echo "$a less than $b"
+fi
+----------------------------------------------------
+布尔运算符:
+-o -->or 
+-a -->and
+
+#!/bin/bash
+a=100
+b=200
+c=300
+if [ $a -eq $b -o $a -lt $b ]
+ then
+  echo "$a equals or less than  $b"
+fi
+
+if [ $a -lt $b -a $b -lt $c ]
+ then
+  echo "$a less than $b  and $b less than $c "
+fi
+
+----------------------------------------------------
+逻辑运算符:
+&& 并且
+|| 或者
+
+方式一：
+#!/bin/bash
+a=100
+b=200
+c=300
+if [[ $a -eq $b || $a -lt $b ]]
+ then
+  echo "$a equals or less than  $b"
+fi
+
+if [[ $a -lt $b && $b -lt $c ]];then
+  echo "$a less than $b  and $b less than $c "
+fi
+
+方式二：
+#!/bin/bash
+a=100
+b=200
+c=300
+if [ $a -eq $b ] || [ $a -lt $b ]
+then
+  echo "$a equals or less than  $b"
+fi
+
+if [ $a -lt $b ] && [ $b -lt $c ];then
+  echo "$a less than $b  and $b less than $c "
+fi
+
+----------------------------------------------------
+字符串运算符：
+=
+!=
+-z	检测字符串长度是否为0，为0返回 true
+-n	检测字符串长度是否为0，不为0返回 true。
+
+#!/bin/bash
+a="laowang"
+b="xiaowang"
+c="laolishishui"
+if [ $a = $b ]
+ then
+  echo "$a equals $b"
+fi
+
+if [ $a != $b ]
+then
+  echo "$a not equals $b "
+fi
+if [ -n $b ]
+then
+  echo "$b length is not zero "
+fi
+
+文件测试运算符
+-d file	检测文件是否是目录，如果是，则返回 true
+-f file	检测文件是否是普通文件,如果是，则返回 true
+-r file	检测文件是否可读，如果是，则返回 true。
+-w file	检测文件是否可写，如果是，则返回 true。
+-x file	检测文件是否可执行，如果是，则返回 true
+-s file	检测文件是否为空,不为空返回 true。
+-e file	检测文件（包括目录）是否存在，如果是，则返回 true
+
+#!/bin/bash
+dir=/opt/data/shell
+files=/opt/data/shell/first
+
+if [ -d $dir ]
+then
+  echo "$dir is directory "
+fi
+
+if [ -f $files ];then
+  echo "$files is files "
+fi
+
+if [ -x $files ]
+then
+  echo "$files is excute "
+fi
+
+if [ -s $files ]
+then
+  echo "$files is not null "
+fi
+
+(4)、shell的条件判断
+========if
+if [  ]
+then
+ command;
+fi
+======== if.....else
+if [  ]
+then
+  command;
+ else
+  command;
+fi
+========
+======== if....elif ....else
+if [  ]
+then
+  command;
+ elif
+ then
+  command;
+ elif
+ then
+  command;
+ else
+  command;
+fi
+
+====================================
+a=10
+b=20
+if [ $a == $b ]
+then
+   echo "a 等于 b"
+elif [ $a -gt $b ]
+then
+   echo "a 大于 b"
+elif [ $a -lt $b ]
+then
+   echo "a 小于 b"
+else
+   echo "没有符合的条件"
+fi
+
+if [ $a == $b ];then
+ echo "a 等于 b"
+else
+ echo "a 不等于 b"
+fi
+
+=============================================================
+(5)、shell for/while循环
+for循环的三种方式：
+
+vi fortest01.sh
+#!/bin/sh
+#!/bin/sh
+for i  in  1 3 5 7 9
+do
+  echo "$i"
+done
+
+#使用for循环遍历某个目录下所有文件
+for file in `ls /`
+do
+ echo "$file"
+done
+
+vi fortest02.sh
+#!/bin/sh
+for i in `seq 1 10`
+do
+ echo "$i"
+done
+
+vi fortest03.sh
+#!/bin/sh
+for((i=0;i<=10;i++))
+do
+  echo "$i"
+done
+
+
+
+=============================================
+#!/bin/bash
+i=1
+while(($i<=10))
+do
+  echo "$i"
+  i=`expr $i + 1`
+  #let "i++"
+done
+echo "=================while/read/case/continue/break  自动++======================================="
+echo '输入你喜欢的数字：'
+read num
+echo  "输入你喜欢的数字：$num"
+while(($num<=10))
+do
+  case $num in
+  1|3|5|7|9)
+   if [ $num -eq 3 ];then
+        num=`expr $num + 1`
+       continue
+   fi
+   echo "$num"
+   ;;
+  2|4|6|8|10)
+   if [ $num -eq 8 ];then
+      break
+   fi
+  ;;
+  *)
+   echo "不满足任何条件，就走这个分支..."
+   ;;
+ esac
+  num=`expr $num + 1`
+ # let "num++"
+done
+
+(6)、shell的方法定义
+[function] fun[()]{
+
+}
+
+fun01{
+
+}
+
+fun01(){
+
+}
+
+注意：方法先定义，后才能调用！！！！
+
+#!/bin/sh
+function f(){
+#!/bin/sh
+function f(){
+ echo "this is my first funtion..."
+}
+f
+#执行shell脚本文件时传递的参数，$0表示文件
+echo "第二参数：$1"
+echo "第三个参数：$2"
+echo "第一个参数：$0"
+
+fun01(){
+ echo "方法的第二参数：$1"
+ echo "方法的第三个参数：$2"
+ #方法里面的$1、$2、$3。。。表示调用方法的时候传递参数
+ i=`expr $1 + $2`
+ echo "$i"
+ #方法的返回值
+ return "$i"
+}
+#调用函数的时候 传递参数
+fun01 1 2
+#$?获取的是离它最近的脚本语句返回的结果值
+echo "$?"
+
+执行：./funtest.sh  10 20
+
+
+(7)、shell时间
+Linux终端下测试：date +%A
+
+%%    一个文字的 %
+%a    当前locale 的星期名缩写(例如： 日，代表星期日)
+%A    当前locale 的星期名全称 (如：星期日)
+%b    当前locale 的月名缩写 (如：一，代表一月)
+%B    当前locale 的月名全称 (如：一月)
+%c    当前locale 的日期和时间 (如：2005年3月3日 星期四 23:05:25)
+%C    世纪；比如 %Y，通常为省略当前年份的后两位数字(例如：20)
+%d    按月计的日期(例如：01)
+%D    按月计的日期；等于%m/%d/%y
+%e    按月计的日期，添加空格，等于%_d
+%F    完整日期格式，等价于 %Y-%m-%d
+%g    ISO-8601 格式年份的最后两位 (参见%G)
+%G    ISO-8601 格式年份 (参见%V)，一般只和 %V 结合使用
+%h    等于%b
+%H    小时(00-23)
+%I    小时(00-12)
+%c    按年计的日期(001-366)
+%k    时(0-23)
+%l    时(1-12)
+%m    月份(01-12)
+%M    分(00-59)
+%n    换行
+%N    纳秒(000000000-999999999)
+%p    当前locale 下的"上午"或者"下午"，未知时输出为空
+%P    与%p 类似，但是输出小写字母
+%r    当前locale 下的 12 小时时钟时间 (如：11:11:04 下午)
+%R    24 小时时间的时和分，等价于 %H:%M
+%s    自UTC 时间 1970-01-01 00:00:00 以来所经过的秒数
+%S    秒(00-60)
+%t    输出制表符 Tab
+%T    时间，等于%H:%M:%S
+%u    星期，1 代表星期一
+%U    一年中的第几周，以周日为每星期第一天(00-53)
+%V    ISO-8601 格式规范下的一年中第几周，以周一为每星期第一天(01-53)
+%w    一星期中的第几日(0-6)，0 代表周一
+%W    一年中的第几周，以周一为每星期第一天(00-53)
+%x    当前locale 下的日期描述 (如：12/31/99)
+%X    当前locale 下的时间描述 (如：23:13:48)
+%y    年份最后两位数位 (00-99)
+%Y    年份
+%z +hhmm              数字时区(例如，-0400)
+%:z +hh:mm            数字时区(例如，-04:00)
+%::z +hh:mm:ss        数字时区(例如，-04:00:00)
+%:::z                 数字时区带有必要的精度 (例如，-04，+05:30)
+%Z                    按字母表排序的时区缩写 (例如，EDT)
+
+
+指定1970年以来的秒数：
+date -d ’1970-01-01 1251734400 sec utc’      （2009年 09月 01日 星期二 00:00:00 CST）
+date -d ’1970-01-01 1314177812 sec utc’      （2011年 08月 24日 星期三 17:23:32 CST）
+今天：
+date
+date -d today
+date -d now
+明天：
+date -d tomorrow
+date -d next-day
+date -d next-days
+date -d “next day”
+date -d “next days”
+date -d “+1 day”
+date -d “+1 days”
+date -d “1 day”
+date -d “1 days”
+date -d “-1 day ago”
+date -d “-1 days ago”
+昨天：
+date -d yesterday
+date -d last-day
+date -d last-days
+date -d “last day”
+date -d “last days”
+date -d “-1 day”
+date -d “-1 days”
+date -d “1 day ago”
+date -d “1 days ago”
+前天：
+date -d “2 day ago”
+date -d “2 days ago”
+date -d “-2 day”
+date -d “-2 days”
+大前天：
+date -d “3 day ago”
+date -d “3 days ago”
+date -d “-3 day”
+date -d “-3 days”
+上周，一周前：
+date -d “1 week ago”
+date -d “1 weeks ago”
+上个星期五（不是上周五）：
+date -d “last-friday”
+date -d “last friday”
+上月，一月前：
+date -d last-month
+date -d last-months
+date -d “-1 month”
+date -d “-1 months”
+下月，一月后：
+date -d next-month
+date -d next-months
+date -d “+1 month”
+date -d “+1 months”
+去年，一年前：
+date -d last-year
+date -d last-years
+date -d “-1 year”
+date -d “-1 years”
+明年，一年后：
+date -d next-year
+date -d next-years
+date -d “+1 year”
+date -d “+1 years”
+一小时前：
+date -d “last-hour”
+date -d “last-hours”
+date -d “1 hour ago”
+date -d “1 hours ago”
+一小时后：
+date -d “1 hour”
+date -d “1 hours”
+一分钟前：
+date -d "1 minute ago"
+date -d “1 minutes ago”
+一分钟后：
+date -d “1 minute”
+date -d “1 minutes”
+一秒前：
+date -d “1 second ago”
+date -d “1 seconds ago”
+一秒后：
+date -d “1 second”
+date -d “1 seconds”
+
+五、综合案例
+1、删除当前目录下大小为0的文件
+
+#!/bin/bash
+cd /opt/data/shell/dir
+for file in `ls ./`
+do
+#判断文件大小是否为空，如果不为空true
+ if ! [ -s $file ]
+  then
+   rm -rf $file
+   #$? 表示判断上面这个语句执行的成功还是失败
+   if [ $? -eq 0 ]
+    then
+     echo "the $file is removed"
+    else
+     echo "the $file removed fail"
+   fi
+ fi
+done
+
+2、给某个文件夹下所有文件问好
+3、列出某个路径下所以文件的路径(非文件夹)
+4、判断hdfs文件是否存在
+vi hdfs_file.sh 
+#!/bin/sh
+hdfs=$(which hadoop)
+$hdfs fs -test -e /$1
+if [ $? -eq 0 ]
+then
+  echo "the $1 file is exists!"
+else
+  echo "the $1 file is not exists!"
+fi
+
+你们完成:
+1.使用shell脚本执行：上传文件一个文件到hdfs系统！
+2.使用shell脚本执行：删除hdfs系统上的一个文件！
+
+
+5、模拟(删除/远程拷贝)当前一周的日志文件
+logs/
+2017-05-1.log
+2017-4-10.log
+2017-4-20.log
+2017-4-28.log
+2017-4-29.log
+2017-4-30.log
+
+#!/bin/bash
+times7daysgaosconds=`date -d "7 days ago" +%s`
+cd $1
+for logfile in `ls ./`
+do
+filenametimes=`basename $logfile .log`
+filenametimessconds=`date -d "$filenametimes" +%s`
+ if [ $filenametimessconds -le $times7daysgaosconds ]
+ then
+ rm -rf $logfile
+  if [ $? -eq 0 ]
+  then
+    echo "the $logfile file is removed..."
+  else
+   echo "the $logfile file removed fail"
+ fi
+fi
+done
+
+
+Hbase====================================
+一、HBase的相关概念
+1.HBase的概念：
+大量数据进行随机近实时读写时使用Hbase。
+2.HBase是一个模仿Gootable’s Bigtable的，开源的、分布式的、版本化的非关系型数据库。
+3.Hbase是一个非关系型数据库。
+4.HBase是用来在大量数据中进行低延迟的随机查询的
+
+2.什么是nosql？
+Not Only SQL ,意即“不仅仅是SQL”
+3.常见的nosql数据库类型
+非关系型数据库——列存储（HBase）
+非关系型数据库——文档型存储（MongoDb）
+非关系型数据库——内存式存储（redis）
+
+
+二、Hbase的环境搭建
+http://hbase.apache.org/
+
+(1).集群规划：
+Node Name	Master	ZooKeeper	RegionServer
+Hadoop001   yes       yes           yes
+Hadoop002   backup    yes           yes
+Hadoop003   no        yes           yes
+
+(2).三台机器配置JDK及环境变量:JAVA_HOME
+(3).配置一个独立的zookeeper集群
+--------------------------------------------------
+在Hadoop001节点上操作：
+上传、解压、重命名、配置zoo.cfg
+vi zoo.cfg
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=/home/bigdata/zkmyid
+clientPort=2181
+server.1=Hadoop001:2888:3888
+server.2=Hadoop002:2888:3888
+server.3=Hadoop003:2888:3888
+
+
+将zookeeper包发送到Hadoop002、Hadoop003：
+scp -r zookeeper root@Hadoop002:/opt/
+scp -r zookeeper root@Hadoop003:/opt/
+
+在Hadoop001配置profile环境变量并且发送给Hadoop002、Hadoop003节点：
+
+vi /etc/profile
+export ZK_HOME=/opt/zookeeper
+export PATH=$PATH:$ZK_HOME/bin
+
+刷新配置
+source /etc/profile
+
+发送环境变量:
+scp /etc/profile root@Hadoop002:/etc/
+scp /etc/profile root@Hadoop003:/etc/
+--------------------------------------------------
+
+在Hadoop001、Hadoop002、Hadoop003分别执行
+mkdir /home/bigdata/zkmyid -p
+echo "1" > /home/bigdata/zkmyid/myid
+
+mkdir /home/bigdata/zkmyid -p
+echo "2" > /home/bigdata/zkmyid/myid
+
+mkdir /home/bigdata/zkmyid -p
+echo "3" > /home/bigdata/zkmyid/myid
+
+--------------------------------------------------
+启动zookeeper集群并且查看服务状态
+在三台机器分别执行：zkServer.sh start
+查看状态：zkServer.sh status
+
+
+====================================================
+====================================================
+(4)配置Hbase
+上传、解压、重命名
+配置：
+vi hbase-env.sh
+export JAVA_HOME=/opt/jdk
+#使用自己安装的zk管理Hbase集群
+export HBASE_MANAGES_ZK=false
+export HADOOP_HOME=/opt/hadoop
+
+
+#根据集群规划，在Hadoop001、Hadoop002、Hadoop003三个街道上启动HRegionServer服务
+vi regionservers
+Hadoop001
+Hadoop002
+Hadoop003
+
+
+vi hbase-site.xml
+
+<!-- 配置HBase使用分布式方式-->
+<property>
+  <name>hbase.cluster.distributed</name>
+  <value>true</value>
+</property>
+<!--hbase中的数据在HDFS上的位置-->
+<property>
+  <name>hbase.rootdir</name>
+  <value>hdfs://Hadoop001:9000/hbase</value>
+</property>
+<!--hbase需要连接的zookeeper集群-->
+<property>
+  <name>hbase.zookeeper.quorum</name>
+  <value>Hadoop001,Hadoop002,Hadoop003</value>
+</property>
+<!--hbase中保存zookeeper数据的地址-->
+<property>
+ <name>hbase.zookeeper.property.dataDir</name>
+ <value>/home/bigdata/zookeeper</value>
+</property>
+
+
+新建backup文件配置backup-master
+vi backup-masters
+Hadoop002
+
+
+将Hbase框架发送到Hadoop002、Hadoop003上：
+scp -r hbase root@Hadoop002:/opt/
+scp -r hbase root@Hadoop003:/opt/
+
+
+在Hadoop001配置profile环境变量并且发送给Hadoop002、Hadoop003节点：
+vi /etc/profile
+export HBASE_HOME=/opt/hbase
+export PATH=$PATH:$HBASE_HOME/bin
+
+发送环境变量:
+scp /etc/profile root@Hadoop002:/etc/
+scp /etc/profile root@Hadoop003:/etc/
+
+
+刷新配置
+source /etc/profile
+
+(5)、先启动Zookeer集群或者Hadoop集群，在启动Hbase集群
+====Zookeer集群=====Zookeer集群
+在三台机器上分别执行:
+zkServer.sh start
+查看Zookeer集群服务状态：
+zkServer.sh status
+
+Hadoop集群=======
+start-all.sh
+
+
+启动Hbase集群(在启动hbase之前，先执行时间同步 date -s "00:00:00")
+start-hbase.sh
+
+链接hbase客户端：
+hbase shell
+
+进入客户端之后，检查Hbase是否正确链接Zookeeper
+list
+
+
+(三)、Hbase的shell操作
+=============操作hbase shell================================
+查看命名空间：
+list_namespace
+
+查看默认的命名空间下的表;
+list
+
+查看某个命名空间下所有表：
+list_namespace_tables 'default'
+
+
+
+创建一个命名空间;
+create_namespace 'ns1'
+
+
+创建表	        create '表名称', '列名称1','列名称2','列名称N'
+查看帮助：help 'create'
+
+create 'ns1:tb2','cf1','cf2'
+
+查看ns1空间下所有表:
+list_namespace_tables 'ns1'
+
+
+添加记录      	put '表名称', '行名称', '列名称:', '值'
+查看帮助：help 'put'
+ put 'ns1:tb2','rk01','cf1:name','laowang'
+ put 'ns1:tb2','rk01','cf1:age','laowang'
+ put 'ns1:tb2','rk01','cf1:age',20
+ put 'ns1:tb2','rk01','cf1:sex','gay'
+ put 'ns1:tb2','rk01','cf2:address','fangshan'
+ 
+  put 'ns1:tb2','rk03','cf1:name','laowang'
+ 
+查看所有记录	scan "表名称" 
+查看帮助：help 'scan' 
+scan 'ns1:tb2'
+
+查看某个表某个列中所有数据	scan "表名称" , ['列名称:']
+ scan 'ns1:tb2',{COLUMNS => ['cf1']}
+ scan 'ns1:tb2',{COLUMNS => ['cf1','cf2']}
+ 
+更新记录 	就是重写一遍进行覆盖
+put 'ns1:tb2','rk01','cf1:name','xiaoxiaowang'
+ 
+查看记录 get '表名称', '行名称'
+查看帮助：help 'get' 
+get 'ns1:tb2','rk01'
+get 'ns1:tb2','rk01','cf1'
+get 'ns1:tb2','rk01','cf1:name'
+
+
+
+查看表中的记录总数	count  '表名称'
+count 'ns1:tb2'
+
+删除记录	    delete  '表名' ,'行名称' , '列名称'
+查看帮助：help 'delete' 
+delete 'ns1:tb2','rk04','cf1:name',1493777155357
+
+
+删除一张表	先要屏蔽该表，才能对该表进行删除，第一步 disable '表名称' 第二步  drop '表名称'
+
+disable 'ns1:tb2'
+drop 'ns1:tb2'
+list_namespace_tables 'ns1'
+
+
+(四)、Hbase的原理和核心概念
+(1).Hbase表的region定位！client-->zookeeper(hbase:meta找到regoin表地址)-Hbase节点(hbase:meta表的region信息)
+(2).Hbase表核心组件的概念
+Table和region
+Table在行的方向上分割为多个HRegion，
+一个region由[startkey,endkey)表示，每个HRegion分散在不同的RegionServer中
+
+client作用：
+提供用户操作hbase的接口(shell、java的api接口)
+
+zookeeper作用：
+Zookeeper集群存储-ROOT-表的地址和Master地址(-ROOT-表在0.96.0之后已经被替换)
+RegionServer主动向Zookeeper注册使得Master可随时感知各Region Server的健康状态。
+Zookeeper另一个重要作用是保证任何时候hbase集群中只有一个激活状态的hmaster，
+ 已达到hmaster高可用(hbase本身是高可用).
+
+Hmaster:
+负责HBase中Table和Region的管理,包括表的增删改查
+Region Server的负载均衡
+Region分布调整
+Region分裂以及分裂后的Region分配
+Region Server失效后的Region迁移等。
+
+HRegionServer的作用：
+HRegionServer 主要负责相应用户的I/O请求，进而跟HDFS交互，从HDFS中读写数据，虽然每个进程都很重要，但个人认为HRegionServer是HBase中最核心的进程。
+下面对HRegionServer的内部结构做一个简单描述:
+HRegionServer 内部管理了一系列的HRegion对象，HRegion和Region是一回事吗？其实HRegion对应了Table中的一个Region，HRegion是对其进行的封装。
+每个HRegion中由多个HStore组成。HStore则对应Table中的Column Family，
+不论此Column Family 内部有多少数据，都会创建一个新的HStore,因此将相同属性的数据放进相同的Column Family 很有必要，避免一次访问，
+访问多个HStore，性能低下。而HStore 则是HBase的核心的存储单元了，而HStore由两个部分组成，一是MemStore,再就是StoreFile 
+MemStore 是Sorted Memory Buffer ,client 写入的数据先写入MemStore,当达到MemStore的阀值时，将其Flush 成为一个StoreFile(HFile),StoreFile 则是存储在硬盘上的文件。
+
+总结：
+---处理对用户对这些region的I/O请求
+---Regionserver维护region对象
+---Regionserver负责切分在运行过程中变得过大的region
+
+
+Hlog的作用(默认是打开)：
+通过hbase的WAL(write-ahead-log)机制来保证数据写入时出现异常，方便恢复。
+
+HRegion作用：
+是表中的一部分，rs会默认按照rowkey来进行拆分成多个region。
+
+storefile：
+存储单元，存储基本单位，相当于一个列族。
+
+memstore:
+内存缓冲区，一个store对应一个memstore，当在写数据时，首先将数据
+写入到Hlog，然后再写入到memstore，当达到memstore的溢写阈值时才会将数据flush到hdfs中。
+
+HFile:
+相当于存储一列数据。
+组件对应关系：
+hmaster:hregionserver=1:n
+hregionserver:hlog=1:1
+hregionserver:hregion=1:n
+hregion:store=1:n
+store:memstore=1:1
+storeFile:HFile=1:1
+
+HBase中的数据最终存储在DataNode的块Block上
+
+
+
+一、Hive和Hbase整合理论
+0、Hive与hbase整合的原理
+Hive与HBase的整合功能的实现是利用两者本身对外
+的API接口互相进行通信，相互通信主要是依靠hive hbase-handler.jar工具类 (Hive Storage Handlers)
+
+1、为什么hive要和hbase整合
+2、整合的优缺点
+优点：
+(1).Hive方便地提供了Hive QL的接口来简化MapReduce的使用，
+  而HBase提供了低延迟的数据库访问。如果两者结合，可以利
+  用MapReduce的优势针对HBase存储的大量内容进行离线的计算和分析。
+(2).操作方便，hive提供了大量系统功能
+缺点：
+  性能的损失，hive有这样的功能, 他支持通过类似sql语句的语法来操作hbase
+  中的数据, 但是速度慢。
+
+3、整合需要做什么样的准备工作。
+4、整合后的目标：
+(1). 在hive中创建的表能直接创建保存到hbase中。
+(2). 往hive中的表插入数据，数据会同步更新到hbase对应的表中。
+(3). hbase对应的列簇值变更，也会在Hive中对应的表中变更。
+(4). 实现了多列、多列簇的转化。
+
+4.案例
+案例1：使用hive表管理学生信息(管理表或者内部表)：
+create table if not exists tb_hh_stu(
+sno bigint,
+sname string,
+ssex string,
+sage int,
+saddress string
+)
+row format delimited fields terminated by ',';
+
+
+数据;
+vi tb_hh_stu.txt
+201704023001,xiaowu,nv,28,fangshan
+201704023002,xiaowang,nan,28,fangshan
+201704023003,xiaoli,nv,28,fangshan
+201704023004,xiaoxu,nv,22,fangshan
+201704023005,xiaozhang,nan,28,fangshan
+201704023006,xiaopei,nv,25,fangshan
+201704023007,xiaohuang,nan,27,fangshan
+
+加载本地数据：
+
+load data local inpath '/opt/data/tb_hh_stu.txt' overwrite into table tb_hh_stu;
+
+
+
+Hive和Hbase识别表================
+案例2：创建Hive和Hbase都能识别的表：
+create table if not exists tb_hh_stu01(
+sno bigint,
+sname string,
+ssex string,
+sage int,
+saddress string
+)
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'  
+WITH SERDEPROPERTIES ("hbase.columns.mapping" = ":key,cf_info:name,cf_info:sex,cf_info:age,cf_other:address")   
+TBLPROPERTIES ("hbase.table.name" = "ns:stu01");
+
+
+注意：
+1.像这种Hive和Hbase识别表只能以结果集的方式导入数据到里面
+2.因为版本之间的问题，用自己重新编译过的hive-hbase-handler-1.2.1.jar包替换hive框架lib目录下的
+hive-hbase-handler-1.2.1.jar。否则会报错.
+3. 创建表时指定hive和hbase通信接口操作类(org.apache.hadoop.hive.hbase.HBaseStorageHandler)
+4.  :key,cf_info:o99,cf_info:sex,cf_info:age,cf_other:address
+(1) :key 不管创建hive、表时，指定:key与否，hive表都会把hive的第一列(sno)作为hbase的rowkey。
+(2)  cf_info:o99,cf_info:sex,cf_info:age 说明name/agg/sex都是在同一个列族下(cf_info)
+(3)  cf_other:address 说明address是cf_other列族下的列
+
+
+
+5.导入数据到hive和Hbase识别表;
+insert into table tb_hh_stu01 select * from tb_hh_stu;
+
+
+查看hive表tb_hh_stu01数据：
+ select * from tb_hh_stu01;
+ 
+查看Hbase表"ns:stu01"数据：
+ scan 'ns:stu01'
+ 
+ -------->两者数据一样。。。
+ 
+ 6.在Hbase中往"ns:stu01"表添加数据：
+
+ put 'ns:stu01','201704023008','cf_info:name','lili'
+ put 'ns:stu01','201704023008','cf_info:age',20
+ put 'ns:stu01','201704023008','cf_info:sex','nan'
+ put 'ns:stu01','201704023008','cf_other:address','daxing'
+ 
+ 
+ 查看hive表tb_hh_stu01数据：
+ select * from tb_hh_stu01;
+ 
+查看Hbase表"ns:stu01"数据：
+ scan 'ns:stu01'
+ 
+ -------->两者数据一样。。。
+
+
+
+需求：当Hbase中已经存在Hbase表，并且已经添加完整的数据。
+如何创建一个Hive表来识别这个已经存在的Hbase表？
+案例3：
+先在Hbase中模拟一个已经存在的表并且添加好数据：
+create_namespace 'ns_books'
+create 'ns_books:tb_books','cfbk_info','cfbk_beizhu'
+
+ put 'ns_books:tb_books','no20001010123','cfbk_info:bkname','java'
+ put 'ns_books:tb_books','no20001010123','cfbk_info:bkauthor','xiaowang'
+ put 'ns_books:tb_books','no20001010123','cfbk_info:bkprice',80
+ put 'ns_books:tb_books','no20001010123','cfbk_beizhu:bkdesc','from USA'
+ 
+ 
+ put 'ns_books:tb_books','no20001010125','cfbk_info:bkname','c++'
+ put 'ns_books:tb_books','no20001010125','cfbk_info:bkauthor','laowang'
+ put 'ns_books:tb_books','no20001010125','cfbk_info:bkprice',50
+ put 'ns_books:tb_books','no20001010125','cfbk_beizhu:bkdesc','from CN'
+ 
+ 查看Hbase表"ns_books:tb_books"数据：
+ scan 'ns_books:tb_books'
+-----------------------------------------------------------------------------
+在hive中创建一个hive表来识别Hbase中已经存在的Hbase表：
+
+create EXTERNAL table if not exists tb_hh_stu02(
+bk_no string,
+bk_name string,
+bk_author string,
+bk_price int,
+bk_desc string
+)
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'  
+WITH SERDEPROPERTIES ("hbase.columns.mapping" = "cfbk_info:bkname,cfbk_info:bkauthor,cfbk_info:bkprice,cfbk_beizhu:bkdesc")   
+TBLPROPERTIES ("hbase.table.name" = "ns_books:tb_books");
+
+
+说明：
+1. cfbk_info:bkname,cfbk_info:bkauthor,cfbk_info:bkprice,cfbk_beizhu:bkdesc
+是habase表tb_books中的列族和字段，在创建Hbive表时注意好对应关系，注意：
+里面没写":key"这个字段，但是hive同样会去读取Hbase的rowkey作为自己的第一个字段。
+
+2.在这种Hbase已经存在，然后创建Hive表去识别这个已经存在的Hbase表时，那么这个
+Hive表必须是EXTERNAL类型表。
+
+3.在命名hive表的字段时尽量跟Hbase表的字段一致。
+
+查看Hive表的数据效果：
+ select * from tb_hh_stu02;
+ 
+ 在查看hive表的hdfs路径下的数据是否有？
+ hdfs://Hadoop001:9000/user/hive/warehouse/db_1608c.db/tb_hh_stu02
